@@ -195,7 +195,11 @@ class NIDSPreprocessor:
         else:
             multi = raw_label
 
-        binary = np.where(multi.str.lower().isin(["normal", "benign"]), "Normal", "Attack")
+        # So khớp linh hoạt (contains) thay vì khớp tuyệt đối, vì các bộ dữ liệu khác nhau
+        # đặt tên nhãn "bình thường" khác nhau: "normal", "BENIGN", "Normal Traffic"...
+        is_normal = multi.str.lower().str.contains("normal", na=False) | \
+                    multi.str.lower().str.contains("benign", na=False)
+        binary = np.where(is_normal, "Normal", "Attack")
         binary = pd.Series(binary, index=df.index, name="binary_label")
 
         drop_cols = [c for c in cfg["drop_cols"] if c in df.columns]

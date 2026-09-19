@@ -55,10 +55,10 @@
     "Idle Max",
     "Idle Min"
   ],
-  "accuracy": 1.0,
-  "precision_macro": 1.0,
-  "recall_macro": 1.0,
-  "f1_macro": 1.0,
-  "train_time_sec": 1.1429862976074219,
-  "inference_time_sec": 0.320828914642334
+  "accuracy": 0.9986213545241391,
+  "precision_macro": 0.9974588516816044,
+  "recall_macro": 0.9976310894230151,
+  "f1_macro": 0.9975449460769049,
+  "train_time_sec": 193.9013433456421,
+  "inference_time_sec": 0.6819453239440918
 }

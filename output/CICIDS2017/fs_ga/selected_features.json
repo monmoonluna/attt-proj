@@ -1,18 +1,22 @@
 {
-  "n_features_selected": 1,
+  "n_features_selected": 5,
   "n_features_total": 52,
   "selected_features": [
-    "Bwd Packet Length Max"
+    "Destination Port",
+    "Bwd IAT Std",
+    "Subflow Fwd Bytes",
+    "Init_Win_bytes_forward",
+    "Init_Win_bytes_backward"
   ],
-  "accuracy": 1.0,
-  "precision_macro": 1.0,
-  "recall_macro": 1.0,
-  "f1_macro": 1.0,
-  "train_time_sec": 0.3111574649810791,
-  "inference_time_sec": 0.04051923751831055,
+  "accuracy": 0.9977108534113045,
+  "precision_macro": 0.9961625878068374,
+  "recall_macro": 0.9956795176622034,
+  "f1_macro": 0.9959208595659899,
+  "train_time_sec": 8.085314512252808,
+  "inference_time_sec": 0.09415864944458008,
   "method": "ga",
   "classifier": "dt",
-  "best_fitness_on_subsample": 0.8980769230769231,
-  "search_time_sec": 11.405915021896362,
-  "n_fitness_evaluations": 729
+  "best_fitness_on_subsample": 0.8806801347899823,
+  "search_time_sec": 26.264018774032593,
+  "n_fitness_evaluations": 769
 }
