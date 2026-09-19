@@ -1,0 +1,18 @@
+{
+  "n_features_selected": 1,
+  "n_features_total": 52,
+  "selected_features": [
+    "Bwd Packet Length Max"
+  ],
+  "accuracy": 1.0,
+  "precision_macro": 1.0,
+  "recall_macro": 1.0,
+  "f1_macro": 1.0,
+  "train_time_sec": 0.3111574649810791,
+  "inference_time_sec": 0.04051923751831055,
+  "method": "ga",
+  "classifier": "dt",
+  "best_fitness_on_subsample": 0.8980769230769231,
+  "search_time_sec": 11.405915021896362,
+  "n_fitness_evaluations": 729
+}

@@ -1,0 +1,5 @@
+# Dataset
+data/**/*.csv
+
+# Generated output
+output/**/*.csv

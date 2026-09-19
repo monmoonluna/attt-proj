@@ -1,0 +1,23 @@
+{
+  "n_features_selected": 6,
+  "n_features_total": 39,
+  "selected_features": [
+    "service",
+    "src_bytes",
+    "dst_host_count",
+    "dst_host_diff_srv_rate",
+    "dst_host_same_src_port_rate",
+    "dst_host_srv_serror_rate"
+  ],
+  "accuracy": 0.7366926898509581,
+  "precision_macro": 0.781257355458282,
+  "recall_macro": 0.7620449328939958,
+  "f1_macro": 0.7351001045907858,
+  "train_time_sec": 0.3609895706176758,
+  "inference_time_sec": 0.010329723358154297,
+  "method": "ga",
+  "classifier": "dt",
+  "best_fitness_on_subsample": 0.8798780564936273,
+  "search_time_sec": 250.37696266174316,
+  "n_fitness_evaluations": 721
+}

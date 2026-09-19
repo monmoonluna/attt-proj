@@ -1,0 +1,21 @@
+{
+  "n_features_selected": 4,
+  "n_features_total": 42,
+  "selected_features": [
+    "sbytes",
+    "sttl",
+    "ct_srv_src",
+    "ct_srv_dst"
+  ],
+  "accuracy": 0.835410290045183,
+  "precision_macro": 0.8578451856439968,
+  "recall_macro": 0.8219651543805342,
+  "f1_macro": 0.8273522581565074,
+  "train_time_sec": 0.3222157955169678,
+  "inference_time_sec": 0.021419525146484375,
+  "method": "ga",
+  "classifier": "dt",
+  "best_fitness_on_subsample": 0.8417510122607879,
+  "search_time_sec": 434.8786849975586,
+  "n_fitness_evaluations": 753
+}
