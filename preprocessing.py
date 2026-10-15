@@ -2,7 +2,14 @@
 preprocessing.py
 =================
 Pipeline tiền xử lý dữ liệu cho bài toán Phát hiện tấn công mạng
-(Network Intrusion Detection) - hỗ trợ NSL-KDD, CICIDS2017, UNSW-NB15.
+(Network Intrusion Detection) - hỗ trợ NSL-KDD, CICIDS2017, UNSW-NB15, CICDDoS2019.
+
+CICDDoS2019 gồm nhiều file CSV theo từng loại tấn công/ngày thu thập - dùng
+--merge-dir / --merge-output để gộp thành 1 file trước khi chạy pipeline chính:
+    python preprocessing.py --merge-dir data/CICDDoS2019/01-12 --merge-output data/cicddos2019_day1.csv
+    python preprocessing.py --merge-dir data/CICDDoS2019/03-11 --merge-output data/cicddos2019_day2.csv
+    python preprocessing.py --input data/cicddos2019_day1.csv --test data/cicddos2019_day2.csv \\
+        --dataset cicddos2019 --label-mode binary --output-dir output/CICDDoS2019/
 
 Các bước xử lý:
     1. Đọc dữ liệu (CSV) và chuẩn hóa tên cột.
@@ -113,7 +120,63 @@ DATASET_CONFIGS = {
         attack_map=None,
         has_header=True,
     ),
+    "cicddos2019": dict(
+        columns=None,           # CSV gốc/CICFlowMeter đã có header sẵn (có thể có khoảng trắng đầu tên cột)
+        label_col="Label",      # sau strip() tên cột, " Label" -> "Label"
+        # Các cột định danh/không mang thông tin hành vi mạng thực sự - loại bỏ nếu có mặt,
+        # tránh rò rỉ dữ liệu (IP/cổng nguồn chỉ phản ánh topology mô phỏng, không phải hành vi tấn công)
+        drop_cols=[
+            "Unnamed: 0", "Flow ID", "Source IP", "Src IP", "Source Port", "Src Port",
+            "Destination IP", "Dst IP", "Timestamp", "SimillarHTTP",
+        ],
+        categorical_cols=[],    # hầu hết đặc trưng CICDDoS2019 (CICFlowMeter) là số
+        attack_map=None,        # giữ nguyên nhãn gốc (BENIGN, DrDoS_DNS, Syn, UDP, Portmap, WebDDoS, ...)
+        has_header=True,
+    ),
 }
+
+
+# --------------------------------------------------------------------------- #
+# Tiện ích gộp nhiều file CSV (CICDDoS2019 gốc chia theo nhiều file tấn
+# công/ngày thu thập - ví dụ DrDoS_DNS.csv, Syn.csv, UDP.csv, ... mỗi ngày).
+# Dùng 1 lần trước khi chạy pipeline chính: gộp toàn bộ file của 1 ngày
+# thành 1 file CSV duy nhất để làm --input hoặc --test.
+# --------------------------------------------------------------------------- #
+
+def merge_csv_directory(input_dir: str, output_csv: str, pattern: str = "*.csv") -> pd.DataFrame:
+    """Gộp tất cả file CSV trong một thư mục (và thư mục con) thành 1 file duy nhất.
+
+    Các file có thể có tập cột hơi khác nhau (một số bản CICDDoS2019 thiếu/thừa
+    vài cột giữa các file tấn công) - hàm này hợp nhất theo UNION cột, điền NaN
+    cho cột thiếu ở từng file, sau đó nối (concat) theo dòng.
+    """
+    import glob
+
+    paths = sorted(glob.glob(os.path.join(input_dir, "**", pattern), recursive=True))
+    if not paths:
+        raise FileNotFoundError(f"Không tìm thấy file CSV nào trong {input_dir}")
+
+    logger.info("Tìm thấy %d file CSV để gộp trong %s", len(paths), input_dir)
+    frames = []
+    for p in paths:
+        try:
+            df = pd.read_csv(p, low_memory=False)
+        except Exception as e:
+            logger.warning("Bỏ qua file lỗi %s: %s", p, e)
+            continue
+        df.columns = [c.strip() for c in df.columns]
+        df["__source_file__"] = os.path.basename(p)   # chỉ để log/kiểm tra, sẽ bị loại trước khi lưu
+        frames.append(df)
+        logger.info("  + %s: %d dòng, %d cột", os.path.basename(p), len(df), df.shape[1])
+
+    merged = pd.concat(frames, ignore_index=True, sort=False)
+    logger.info("Phân bố theo file nguồn:\n%s", merged["__source_file__"].value_counts().to_string())
+    merged = merged.drop(columns=["__source_file__"])  # không đưa cột debug vào file CSV cuối cùng
+
+    os.makedirs(os.path.dirname(os.path.abspath(output_csv)) or ".", exist_ok=True)
+    merged.to_csv(output_csv, index=False)
+    logger.info("Đã gộp thành %s: %d dòng, %d cột", output_csv, len(merged), merged.shape[1])
+    return merged
 
 
 @dataclass
@@ -348,7 +411,12 @@ class NIDSPreprocessor:
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Pipeline tiền xử lý dữ liệu NIDS")
-    parser.add_argument("--input", required=True, help="Đường dẫn file CSV huấn luyện")
+    parser.add_argument("--merge-dir", default=None,
+                         help="Nếu truyền vào: CHỈ gộp toàn bộ CSV trong thư mục này thành 1 file "
+                              "rồi thoát (dùng cho CICDDoS2019 gốc có nhiều file theo từng loại tấn công/ngày). "
+                              "Cần đi kèm --merge-output.")
+    parser.add_argument("--merge-output", default=None, help="Đường dẫn file CSV gộp sẽ được ghi ra")
+    parser.add_argument("--input", required=False, help="Đường dẫn file CSV huấn luyện")
     parser.add_argument("--test", default=None, help="Đường dẫn file CSV kiểm tra (tùy chọn)")
     parser.add_argument("--dataset", default="nslkdd", choices=list(DATASET_CONFIGS.keys()))
     parser.add_argument("--label-mode", default="binary", choices=["binary", "multi"])
@@ -361,6 +429,16 @@ def parse_args():
 
 def main():
     args = parse_args()
+
+    if args.merge_dir:
+        if not args.merge_output:
+            raise SystemExit("--merge-dir cần đi kèm --merge-output")
+        merge_csv_directory(args.merge_dir, args.merge_output)
+        return
+
+    if not args.input:
+        raise SystemExit("--input là bắt buộc khi không dùng --merge-dir")
+
     scaler = None if args.scaler == "none" else args.scaler
 
     pre = NIDSPreprocessor(

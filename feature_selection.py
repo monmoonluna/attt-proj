@@ -66,6 +66,15 @@ CLASSIFIERS = {
     "knn": lambda: KNeighborsClassifier(n_neighbors=5),
 }
 
+try:
+    from xgboost import XGBClassifier
+    CLASSIFIERS["xgb"] = lambda: XGBClassifier(
+        n_estimators=200, max_depth=6, eval_metric="logloss",
+        random_state=42, n_jobs=-1, verbosity=0,
+    )
+except ImportError:
+    pass  # xgboost chưa cài - các module filter_fs.py/hybrid2_fs.py sẽ báo lỗi rõ ràng nếu cố dùng "xgb"
+
 
 # --------------------------------------------------------------------------- #
 # Đọc dữ liệu output từ preprocessing.py
