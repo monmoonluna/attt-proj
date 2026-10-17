@@ -281,6 +281,20 @@ class PSOFeatureSelector(FeatureSelectorBase):
 
     Vị trí hạt là vector nhị phân; vận tốc là số thực, được chuyển thành
     xác suất bit=1 qua hàm sigmoid (theo Kennedy & Eberhart, 1997).
+
+    KHẮC PHỤC HỘI TỤ SỚM (premature convergence - quan sát được lặp lại trên
+    cả 4 bộ dữ liệu đã chạy, xem mục 12.2/12.4.2 trong đề cương): khi
+    (pbest - position) và (gbest - position) đều tiến về 0, quần thể mất đa
+    dạng và best fitness đứng yên từ những vòng lặp đầu. Hai cơ chế được
+    thêm vào để khắc phục:
+        1. Đột biến ngẫu nhiên định kỳ (random mutation): mỗi vòng lặp, một
+           tỉ lệ nhỏ hạt (mutation_rate) bị lật ngẫu nhiên một vài bit,
+           không phụ thuộc vào pbest/gbest - duy trì đa dạng quần thể liên tục.
+        2. Tái khởi tạo một phần quần thể (partial re-initialization): nếu
+           gbest không cải thiện sau `stagnation_limit` vòng lặp liên tiếp,
+           một tỉ lệ (reinit_fraction) các hạt tệ nhất (theo pbest_fit) được
+           khởi tạo lại ngẫu nhiên hoàn toàn (vị trí lẫn vận tốc), cho một
+           đợt khám phá không gian tìm kiếm mới.
     """
 
     def run(
@@ -293,10 +307,15 @@ class PSOFeatureSelector(FeatureSelectorBase):
         c2: float = 1.5,
         v_max: float = 4.0,
         init_prob: float = 0.5,
+        mutation_rate: float = 0.15,
+        bit_mutation_prob: Optional[float] = None,
+        stagnation_limit: int = 5,
+        reinit_fraction: float = 0.3,
         verbose: bool = True,
     ):
         rng = self.rng
         n = self.n_features
+        bit_mutation_prob = bit_mutation_prob if bit_mutation_prob is not None else 3.0 / n
 
         positions = (rng.random((swarm_size, n)) < init_prob).astype(np.uint8)
         velocities = rng.uniform(-v_max, v_max, size=(swarm_size, n))
@@ -310,6 +329,7 @@ class PSOFeatureSelector(FeatureSelectorBase):
         gbest_fit = pbest_fit[gbest_idx]
 
         history = [gbest_fit]
+        stagnation_counter = 0
 
         for it in range(1, iterations + 1):
             inertia = w - (w - w_min) * (it / iterations)  # inertia giảm dần
@@ -327,6 +347,14 @@ class PSOFeatureSelector(FeatureSelectorBase):
             prob = 1.0 / (1.0 + np.exp(-velocities))
             positions = (rng.random((swarm_size, n)) < prob).astype(np.uint8)
 
+            # --- (1) Đột biến ngẫu nhiên định kỳ: duy trì đa dạng quần thể ---
+            mutate_particles = rng.random(swarm_size) < mutation_rate
+            if mutate_particles.any():
+                flip_mask = rng.random((mutate_particles.sum(), n)) < bit_mutation_prob
+                positions[mutate_particles] = np.where(
+                    flip_mask, 1 - positions[mutate_particles], positions[mutate_particles]
+                )
+
             fitness_vals = np.array([self.fitness(p) for p in positions])
 
             improved = fitness_vals > pbest_fit
@@ -337,6 +365,25 @@ class PSOFeatureSelector(FeatureSelectorBase):
             if pbest_fit[gen_best_idx] > gbest_fit:
                 gbest_fit = pbest_fit[gen_best_idx]
                 gbest_pos = pbest_pos[gen_best_idx].copy()
+                stagnation_counter = 0
+            else:
+                stagnation_counter += 1
+
+            # --- (2) Tái khởi tạo một phần quần thể nếu trì trệ kéo dài ---
+            if stagnation_counter >= stagnation_limit:
+                n_reinit = max(1, round(swarm_size * reinit_fraction))
+                worst_idx = np.argsort(pbest_fit)[:n_reinit]  # các hạt có pbest tệ nhất
+                positions[worst_idx] = (rng.random((n_reinit, n)) < init_prob).astype(np.uint8)
+                velocities[worst_idx] = rng.uniform(-v_max, v_max, size=(n_reinit, n))
+                new_fit = np.array([self.fitness(p) for p in positions[worst_idx]])
+                pbest_pos[worst_idx] = positions[worst_idx]
+                pbest_fit[worst_idx] = new_fit
+                stagnation_counter = 0
+                if verbose:
+                    logger.info(
+                        "[PSO] Vòng lặp %3d: trì trệ %d vòng liên tiếp -> tái khởi tạo %d/%d hạt tệ nhất",
+                        it, stagnation_limit, n_reinit, swarm_size,
+                    )
 
             history.append(gbest_fit)
             if verbose:
@@ -429,6 +476,12 @@ def parse_args():
     parser.add_argument("--w-inertia", type=float, default=0.7)
     parser.add_argument("--c1", type=float, default=1.5)
     parser.add_argument("--c2", type=float, default=1.5)
+    parser.add_argument("--mutation-rate", type=float, default=0.15,
+                         help="Tỉ lệ hạt bị đột biến ngẫu nhiên mỗi vòng lặp (chống hội tụ sớm)")
+    parser.add_argument("--stagnation-limit", type=int, default=5,
+                         help="Số vòng lặp không cải thiện trước khi tái khởi tạo một phần quần thể")
+    parser.add_argument("--reinit-fraction", type=float, default=0.3,
+                         help="Tỉ lệ hạt tệ nhất được tái khởi tạo khi trì trệ")
 
     parser.add_argument("--output-dir", required=True)
     return parser.parse_args()
@@ -460,6 +513,9 @@ def main():
         mask, best_fit, history = selector.run(
             swarm_size=args.swarm_size, iterations=args.iterations,
             w=args.w_inertia, c1=args.c1, c2=args.c2,
+            mutation_rate=args.mutation_rate,
+            stagnation_limit=args.stagnation_limit,
+            reinit_fraction=args.reinit_fraction,
         )
         title = "PSO - Convergence curve"
     search_time = time.time() - t0

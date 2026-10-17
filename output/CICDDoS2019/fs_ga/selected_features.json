@@ -1,0 +1,22 @@
+{
+  "n_features_selected": 5,
+  "n_features_total": 68,
+  "selected_features": [
+    "ACK Flag Count",
+    "URG Flag Count",
+    "Avg Fwd Segment Size",
+    "Active Std",
+    "Inbound"
+  ],
+  "accuracy": 0.9364313725490196,
+  "precision_macro": 0.8056895713013821,
+  "recall_macro": 0.9642879778173896,
+  "f1_macro": 0.8610237045330864,
+  "train_time_sec": 0.2644524574279785,
+  "inference_time_sec": 0.0448155403137207,
+  "method": "ga",
+  "classifier": "dt",
+  "best_fitness_on_subsample": 0.8908801333131825,
+  "search_time_sec": 7.555212497711182,
+  "n_fitness_evaluations": 804
+}
