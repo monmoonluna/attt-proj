@@ -128,6 +128,14 @@ DATASET_CONFIGS = {
         drop_cols=[
             "Unnamed: 0", "Flow ID", "Source IP", "Src IP", "Source Port", "Src Port",
             "Destination IP", "Dst IP", "Timestamp", "SimillarHTTP",
+            # "Inbound": LOẠI BỎ vì là artifact của cách bố trí testbed, không phải hành
+            # vi mạng thật - xác nhận bằng ablation thực nghiệm: label Attack có
+            # Inbound=1 ở 99,9% (gần như đồng nhất với nhãn) trong khi Normal thì lẫn lộn
+            # (79,8%/20,1%); loại bỏ cột này giúp Hybrid2 tăng F1 từ 0,8633 lên 0,9534 trên
+            # tập test (có loại tấn công khác tập train) - bằng chứng rõ ràng mô hình dựa
+            # vào Inbound đang overfit vào quy ước capture của testbed, không tổng quát hóa
+            # được sang tấn công mới. Xem mục 12.4 (phần phát hiện Inbound) trong đề cương.
+            "Inbound",
         ],
         categorical_cols=[],    # hầu hết đặc trưng CICDDoS2019 (CICFlowMeter) là số
         attack_map=None,        # giữ nguyên nhãn gốc (BENIGN, DrDoS_DNS, Syn, UDP, Portmap, WebDDoS, ...)

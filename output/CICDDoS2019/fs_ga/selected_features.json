@@ -1,22 +1,23 @@
 {
-  "n_features_selected": 5,
-  "n_features_total": 68,
+  "n_features_selected": 6,
+  "n_features_total": 67,
   "selected_features": [
-    "ACK Flag Count",
-    "URG Flag Count",
-    "Avg Fwd Segment Size",
-    "Active Std",
-    "Inbound"
+    "Destination Port",
+    "Bwd Packet Length Std",
+    "Fwd Packets/s",
+    "Packet Length Std",
+    "SYN Flag Count",
+    "URG Flag Count"
   ],
-  "accuracy": 0.9364313725490196,
-  "precision_macro": 0.8056895713013821,
-  "recall_macro": 0.9642879778173896,
-  "f1_macro": 0.8610237045330864,
-  "train_time_sec": 0.2644524574279785,
-  "inference_time_sec": 0.0448155403137207,
+  "accuracy": 0.9517807486631016,
+  "precision_macro": 0.83745794070914,
+  "recall_macro": 0.9723163002574766,
+  "f1_macro": 0.888951982579847,
+  "train_time_sec": 1.1773478984832764,
+  "inference_time_sec": 0.07001376152038574,
   "method": "ga",
   "classifier": "dt",
-  "best_fitness_on_subsample": 0.8908801333131825,
-  "search_time_sec": 7.555212497711182,
-  "n_fitness_evaluations": 804
+  "best_fitness_on_subsample": 0.8892778506090561,
+  "search_time_sec": 10.435437202453613,
+  "n_fitness_evaluations": 732
 }

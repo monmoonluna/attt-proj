@@ -108,6 +108,7 @@ class FeatureSelectorBase:
         classifier: str = "dt",
         w_acc: float = 0.9,
         w_feat: float = 0.1,
+        w_minority: float = 0.0,
         sample_size: Optional[int] = 5000,
         val_ratio: float = 0.3,
         min_features: int = 1,
@@ -121,10 +122,16 @@ class FeatureSelectorBase:
         self.classifier_factory: Callable = CLASSIFIERS[classifier]
         self.w_acc = w_acc
         self.w_feat = w_feat
+        self.w_minority = w_minority
         self.min_features = min_features
         self.random_state = random_state
         rng = np.random.default_rng(random_state)
         self.rng = rng
+
+        # Lớp thiểu số (minority class) - dùng cho hàm fitness cải tiến của Hybrid 1
+        # (mục 6.4 đề cương: "kết hợp accuracy, số lượng đặc trưng, F1 của lớp thiểu số").
+        class_counts = pd.Series(y_train).value_counts()
+        self.minority_class = class_counts.idxmin()
 
         if sample_size and sample_size < len(X_train):
             X_sub, _, y_sub, _ = train_test_split(
@@ -159,7 +166,15 @@ class FeatureSelectorBase:
         return mask
 
     def fitness(self, mask: np.ndarray) -> float:
-        """fitness = w_acc * F1_macro - w_feat * (số đặc trưng đã chọn / tổng số đặc trưng)."""
+        """fitness = w_acc * F1_macro + w_minority * F1(lớp thiểu số) - w_feat * (số đặc trưng/tổng số đặc trưng).
+
+        Số hạng w_minority * F1(lớp thiểu số) là phần "cải tiến" của Hybrid 1 so với
+        fitness gốc dùng cho GA/PSO thuần túy: F1-macro vốn đã coi các lớp ngang
+        nhau, nhưng khi w_minority > 0, nghiệm nào giữ được khả năng nhận diện
+        riêng lớp hiếm (thường là lớp Attack ít mẫu hơn, hoặc ngược lại tùy dataset)
+        sẽ được thưởng thêm - tránh trường hợp FS vô tình bỏ mất đặc trưng quan
+        trọng với lớp thiểu số chỉ vì nó không ảnh hưởng nhiều đến F1-macro tổng thể.
+        """
         mask = self.repair(mask)
         key = mask.tobytes()
         if key in self._cache:
@@ -172,6 +187,12 @@ class FeatureSelectorBase:
         f1 = f1_score(self.y_val, preds, average="macro", zero_division=0)
         feat_ratio = mask.sum() / self.n_features
         value = self.w_acc * f1 - self.w_feat * feat_ratio
+
+        if self.w_minority:
+            f1_minority = f1_score(
+                self.y_val, preds, labels=[self.minority_class], average="macro", zero_division=0
+            )
+            value += self.w_minority * f1_minority
 
         self._cache[key] = value
         self.n_evaluations += 1

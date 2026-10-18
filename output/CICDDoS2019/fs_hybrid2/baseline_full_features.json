@@ -1,6 +1,6 @@
 {
-  "n_features_selected": 68,
-  "n_features_total": 68,
+  "n_features_selected": 67,
+  "n_features_total": 67,
   "selected_features": [
     "Destination Port",
     "Protocol",
@@ -68,13 +68,12 @@
     "Idle Mean",
     "Idle Std",
     "Idle Max",
-    "Idle Min",
-    "Inbound"
+    "Idle Min"
   ],
-  "accuracy": 0.9389322638146168,
-  "precision_macro": 0.8104492297479877,
-  "recall_macro": 0.9654793028322439,
-  "f1_macro": 0.8653661694612165,
-  "train_time_sec": 7.496807336807251,
-  "inference_time_sec": 0.2466731071472168
+  "accuracy": 0.9966363636363637,
+  "precision_macro": 0.9845955517697176,
+  "recall_macro": 0.9971647851059615,
+  "f1_macro": 0.9907764042675942,
+  "train_time_sec": 6.595110893249512,
+  "inference_time_sec": 0.2254948616027832
 }

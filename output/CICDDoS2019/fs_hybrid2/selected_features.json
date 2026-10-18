@@ -1,6 +1,6 @@
 {
   "n_features_selected": 20,
-  "n_features_total": 68,
+  "n_features_total": 67,
   "selected_features": [
     "Destination Port",
     "Flow Duration",
@@ -9,29 +9,29 @@
     "Fwd Packet Length Min",
     "Fwd Packet Length Mean",
     "Flow Bytes/s",
+    "Flow Packets/s",
     "Flow IAT Mean",
-    "Flow IAT Std",
     "Flow IAT Max",
     "Fwd Packets/s",
     "Min Packet Length",
     "Max Packet Length",
     "Packet Length Mean",
+    "Packet Length Std",
     "URG Flag Count",
     "Average Packet Size",
     "Avg Fwd Segment Size",
     "Subflow Fwd Bytes",
-    "Init_Win_bytes_forward",
-    "Inbound"
+    "Init_Win_bytes_forward"
   ],
-  "accuracy": 0.9377664884135473,
-  "precision_macro": 0.8082122836018176,
-  "recall_macro": 0.9648950287185581,
-  "f1_macro": 0.8633276154216252,
-  "train_time_sec": 3.68601655960083,
-  "inference_time_sec": 0.1065988540649414,
+  "accuracy": 0.9495793226381462,
+  "precision_macro": 0.8325130565260519,
+  "recall_macro": 0.9710140621905328,
+  "f1_macro": 0.8847456935670346,
+  "train_time_sec": 3.0789566040039062,
+  "inference_time_sec": 0.1007225513458252,
   "method": "hybrid2_mi_shap_xgboost",
   "classifier": "dt",
   "w_mi": 0.5,
   "w_shap": 0.5,
-  "search_time_sec": 13.17119836807251
+  "search_time_sec": 24.534042835235596
 }

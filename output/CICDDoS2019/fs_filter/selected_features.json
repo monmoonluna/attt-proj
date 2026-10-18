@@ -1,6 +1,6 @@
 {
   "n_features_selected": 20,
-  "n_features_total": 68,
+  "n_features_total": 67,
   "selected_features": [
     "Destination Port",
     "Flow Duration",
@@ -16,20 +16,20 @@
     "Min Packet Length",
     "Max Packet Length",
     "Packet Length Mean",
+    "Packet Length Std",
     "Packet Length Variance",
     "Average Packet Size",
     "Avg Fwd Segment Size",
     "Subflow Fwd Bytes",
-    "Init_Win_bytes_forward",
-    "Inbound"
+    "Init_Win_bytes_forward"
   ],
-  "accuracy": 0.9249732620320855,
-  "precision_macro": 0.7856431612503278,
-  "recall_macro": 0.9577005347593583,
-  "f1_macro": 0.8417192483442795,
-  "train_time_sec": 4.9163148403167725,
-  "inference_time_sec": 0.11301040649414062,
+  "accuracy": 0.9226702317290553,
+  "precision_macro": 0.7818874273976277,
+  "recall_macro": 0.9557159833630422,
+  "f1_macro": 0.8378446290607754,
+  "train_time_sec": 6.228083610534668,
+  "inference_time_sec": 0.13291430473327637,
   "method": "filter_mi",
   "classifier": "dt",
-  "search_time_sec": 9.114777326583862
+  "search_time_sec": 9.943042039871216
 }
