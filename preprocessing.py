@@ -202,6 +202,8 @@ class NIDSPreprocessor:
     scaler_: object = field(default=None, init=False, repr=False)
     categorical_encoders_: dict = field(default_factory=dict, init=False, repr=False)
     feature_names_: list = field(default=None, init=False, repr=False)
+    has_unknown_class_: bool = field(default=False, init=False, repr=False)
+    unknown_class_names_: list = field(default_factory=list, init=False, repr=False)
 
     # ------------------------------------------------------------------ #
     # 1. Đọc dữ liệu
@@ -360,8 +362,34 @@ class NIDSPreprocessor:
         X, multi_label, binary_label = self.build_labels(df)
         y_raw = binary_label if label_mode == "binary" else multi_label
 
-        y_raw = y_raw.where(y_raw.isin(self.label_encoder_.classes_), self.label_encoder_.classes_[0])
-        y = pd.Series(self.label_encoder_.transform(y_raw), index=X.index, name="label")
+        # Xử lý nhãn lạ ở tập test (chưa từng xuất hiện ở tập train) - ví dụ các loại
+        # tấn công DNS/NTP/SNMP/TFTP chỉ có ở tập test của CICDDoS2019 (mục 6.1 đề cương).
+        # TRƯỚC ĐÂY: gán nhầm vào lớp đầu tiên (label_encoder_.classes_[0]) - sai về ý
+        # nghĩa, làm mô hình "nhìn nhầm" tấn công mới thành lớp đã biết.
+        # BÂY GIỜ: gán vào một lớp "Unknown" RIÊNG, với mã số mới (ngay sau mã lớn nhất
+        # của tập train) - vừa đúng về ý nghĩa (không giả vờ là lớp đã biết), vừa biến
+        # đây thành một chỉ số đánh giá khả năng tổng quát hóa sang tấn công hoàn toàn mới.
+        known_classes = list(self.label_encoder_.classes_)
+        label_to_code = {cls: i for i, cls in enumerate(known_classes)}
+        unknown_code = len(known_classes)
+
+        is_unseen = ~y_raw.isin(known_classes)
+        if is_unseen.any():
+            unseen_labels = sorted(y_raw[is_unseen].unique().tolist())
+            logger.info(
+                "Phát hiện %d/%d mẫu có nhãn CHƯA TỪNG xuất hiện ở tập train (%s) "
+                "-> gán vào lớp \"Unknown\" (mã số %d) thay vì nhầm vào lớp đã biết.",
+                int(is_unseen.sum()), len(y_raw), unseen_labels, unknown_code,
+            )
+            self.unknown_class_names_ = unseen_labels
+            self.has_unknown_class_ = True
+        else:
+            self.has_unknown_class_ = False
+
+        y = pd.Series(
+            y_raw.map(lambda v: label_to_code.get(v, unknown_code)).values,
+            index=X.index, name="label",
+        )
 
         X = self.encode_categorical(X, fit=False)
         X = X.reindex(columns=self.feature_names_, fill_value=0)
@@ -409,6 +437,18 @@ class NIDSPreprocessor:
 
         with open(os.path.join(output_dir, "feature_names.json"), "w", encoding="utf-8") as f:
             json.dump(self.feature_names_, f, ensure_ascii=False, indent=2)
+
+        # Ánh xạ mã số -> tên lớp, kèm lớp "Unknown" nếu tập test có nhãn lạ (mục transform())
+        label_classes = list(self.label_encoder_.classes_)
+        class_mapping = {i: cls for i, cls in enumerate(label_classes)}
+        if self.has_unknown_class_:
+            class_mapping[len(label_classes)] = "Unknown"
+        with open(os.path.join(output_dir, "label_classes.json"), "w", encoding="utf-8") as f:
+            json.dump({
+                "code_to_class": {str(k): v for k, v in class_mapping.items()},
+                "has_unknown_class": self.has_unknown_class_,
+                "unknown_original_labels": self.unknown_class_names_,
+            }, f, ensure_ascii=False, indent=2)
 
         logger.info("Đã lưu toàn bộ dữ liệu và bộ mã hóa vào: %s", output_dir)
 
