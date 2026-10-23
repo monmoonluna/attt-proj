@@ -60,6 +60,28 @@ logging.basicConfig(
 )
 logger = logging.getLogger("feature_selection")
 
+def _safe_stratified_split(X, y, random_state: int, train_size: Optional[float] = None, test_size: Optional[float] = None):
+    """train_test_split(..., stratify=y) nhưng tự động rơi về KHÔNG phân tầng nếu có
+    lớp quá hiếm (ít hơn 2 mẫu trong tập con) - tránh crash khi gặp lớp cực hiếm, ví
+    dụ lớp "Unknown" hoặc các loại tấn công hiếm trong --label-mode multi."""
+    try:
+        return train_test_split(
+            X, y, train_size=train_size, test_size=test_size,
+            stratify=y, random_state=random_state,
+        )
+    except ValueError as e:
+        if "least populated class" not in str(e):
+            raise
+        logger.warning(
+            "Phát hiện lớp quá hiếm (ít hơn 2 mẫu) khi chia dữ liệu theo stratify - "
+            "tự động chuyển sang chia KHÔNG phân tầng cho lần chia này: %s", e,
+        )
+        return train_test_split(
+            X, y, train_size=train_size, test_size=test_size,
+            stratify=None, random_state=random_state,
+        )
+
+
 CLASSIFIERS = {
     "dt": lambda: DecisionTreeClassifier(random_state=42),
     "rf": lambda: RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1),
@@ -69,7 +91,10 @@ CLASSIFIERS = {
 try:
     from xgboost import XGBClassifier
     CLASSIFIERS["xgb"] = lambda: XGBClassifier(
-        n_estimators=200, max_depth=6, eval_metric="logloss",
+        # Không ép eval_metric cố định - để XGBoost tự chọn theo số lớp của y
+        # (logloss cho nhị phân, mlogloss cho đa lớp), tránh lỗi/sai lệch khi
+        # dùng --label-mode multi.
+        n_estimators=200, max_depth=6,
         random_state=42, n_jobs=-1, verbosity=0,
     )
 except ImportError:
@@ -134,16 +159,14 @@ class FeatureSelectorBase:
         self.minority_class = class_counts.idxmin()
 
         if sample_size and sample_size < len(X_train):
-            X_sub, _, y_sub, _ = train_test_split(
-                X_train, y_train, train_size=sample_size,
-                stratify=y_train, random_state=random_state,
+            X_sub, _, y_sub, _ = _safe_stratified_split(
+                X_train, y_train, train_size=sample_size, random_state=random_state,
             )
         else:
             X_sub, y_sub = X_train, y_train
 
-        self.X_fit, self.X_val, self.y_fit, self.y_val = train_test_split(
-            X_sub, y_sub, test_size=val_ratio,
-            stratify=y_sub, random_state=random_state,
+        self.X_fit, self.X_val, self.y_fit, self.y_val = _safe_stratified_split(
+            X_sub, y_sub, test_size=val_ratio, random_state=random_state,
         )
         logger.info(
             "Tập đánh giá fitness: fit=%d dòng, val=%d dòng (từ sample_size=%s)",
@@ -477,7 +500,14 @@ def parse_args():
     parser.add_argument("--data-dir", required=True,
                          help="Thư mục chứa X_train.csv, X_test.csv, y_train.csv, y_test.csv (output của preprocessing.py)")
     parser.add_argument("--method", choices=["ga", "pso"], required=True)
-    parser.add_argument("--classifier", choices=list(CLASSIFIERS), default="dt")
+    parser.add_argument("--classifier", choices=list(CLASSIFIERS), default="dt",
+                         help="Classifier dùng để TÌM KIẾM (tính fitness hàng trăm lần) - nên giữ 'dt' "
+                              "cho nhanh; RF/XGBoost ở đây sẽ làm GA/PSO chậm đi rất nhiều lần.")
+    parser.add_argument("--eval-classifier", default=None,
+                         help="Classifier dùng để ĐÁNH GIÁ CUỐI (chỉ train 1-2 lần, không ảnh hưởng tốc "
+                              "độ tìm kiếm) - mặc định dùng lại --classifier nếu không truyền. Dùng tham "
+                              "số này để so sánh RF/XGBoost mà không làm chậm GA/PSO, ví dụ: "
+                              "--classifier dt --eval-classifier rf")
 
     parser.add_argument("--w-acc", type=float, default=0.9, help="Trọng số cho F1 trong hàm fitness")
     parser.add_argument("--w-feat", type=float, default=0.1, help="Trọng số phạt số lượng đặc trưng")
@@ -514,6 +544,7 @@ def main():
 
     X_train, X_test, y_train, y_test = load_split(args.data_dir)
     sample_size = args.sample_size if args.sample_size > 0 else None
+    eval_classifier = args.eval_classifier if args.eval_classifier else args.classifier
 
     common_kwargs = dict(
         X_train=X_train, y_train=y_train, classifier=args.classifier,
@@ -546,12 +577,14 @@ def main():
         args.method.upper(), int(mask.sum()), selector.n_features, best_fit, search_time, selector.n_evaluations,
     )
 
-    # Đánh giá cuối cùng trên toàn bộ dữ liệu thật
-    logger.info("Đang đánh giá lại trên toàn bộ tập train/test thật...")
-    result = evaluate_on_full_data(X_train, X_test, y_train, y_test, mask, args.classifier)
+    # Đánh giá cuối cùng trên toàn bộ dữ liệu thật (dùng eval_classifier - có thể khác
+    # classifier dùng để tìm kiếm, ví dụ tìm bằng DT cho nhanh nhưng đánh giá bằng RF/XGBoost)
+    logger.info("Đang đánh giá lại trên toàn bộ tập train/test thật (classifier: %s)...", eval_classifier)
+    result = evaluate_on_full_data(X_train, X_test, y_train, y_test, mask, eval_classifier)
     result.update({
         "method": args.method,
-        "classifier": args.classifier,
+        "search_classifier": args.classifier,
+        "classifier": eval_classifier,
         "best_fitness_on_subsample": best_fit,
         "search_time_sec": search_time,
         "n_fitness_evaluations": selector.n_evaluations,
@@ -560,7 +593,7 @@ def main():
     # So sánh với baseline dùng toàn bộ đặc trưng (full features)
     full_mask = np.ones(selector.n_features, dtype=np.uint8)
     logger.info("Đang đánh giá baseline (không Feature Selection) để so sánh...")
-    baseline = evaluate_on_full_data(X_train, X_test, y_train, y_test, full_mask, args.classifier)
+    baseline = evaluate_on_full_data(X_train, X_test, y_train, y_test, full_mask, eval_classifier)
 
     # Lưu kết quả
     with open(os.path.join(args.output_dir, "selected_features.json"), "w", encoding="utf-8") as f:

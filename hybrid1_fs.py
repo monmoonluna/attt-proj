@@ -60,7 +60,11 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Hybrid FS 1: Filter (MI) + Metaheuristic (GA/PSO) cải tiến")
     parser.add_argument("--data-dir", required=True)
     parser.add_argument("--method", choices=["ga", "pso"], required=True)
-    parser.add_argument("--classifier", choices=list(CLASSIFIERS), default="dt")
+    parser.add_argument("--classifier", choices=list(CLASSIFIERS), default="dt",
+                         help="Classifier dùng để TÌM KIẾM (tính fitness hàng trăm lần) - nên giữ 'dt' cho nhanh.")
+    parser.add_argument("--eval-classifier", default=None,
+                         help="Classifier dùng để ĐÁNH GIÁ CUỐI - mặc định dùng lại --classifier. "
+                              "Dùng để so sánh RF/XGBoost mà không làm chậm GA/PSO.")
 
     # Bước 1: Filter (MI) pre-filter
     parser.add_argument("--filter-method", choices=["mi", "chi2"], default="mi")
@@ -171,11 +175,13 @@ def main():
     # Đánh giá cuối trên toàn bộ tập train/test thật (dùng tập đã lọc ở
     # bước 1 làm "không gian đặc trưng", chỉ giữ các cột GA/PSO chọn ở bước 2)
     # ------------------------------------------------------------------ #
-    logger.info("Đang đánh giá trên toàn bộ tập train/test thật...")
-    result = evaluate_on_full_data(X_train_f, X_test_f, y_train, y_test, mask, args.classifier)
+    eval_classifier = args.eval_classifier if args.eval_classifier else args.classifier
+    logger.info("Đang đánh giá trên toàn bộ tập train/test thật (classifier: %s)...", eval_classifier)
+    result = evaluate_on_full_data(X_train_f, X_test_f, y_train, y_test, mask, eval_classifier)
     result.update({
         "method": f"hybrid1_filter{args.filter_method}_{args.method}",
-        "classifier": args.classifier,
+        "search_classifier": args.classifier,
+        "classifier": eval_classifier,
         "n_features_total_original": n_total,
         "n_features_after_prefilter": len(pre_filtered_cols),
         "pre_filter_features": pre_filtered_cols,
@@ -189,7 +195,7 @@ def main():
     # So sánh với baseline dùng TOÀN BỘ đặc trưng gốc (không qua Filter, không qua GA/PSO)
     full_mask = np.ones(n_total, dtype=np.uint8)
     logger.info("Đang đánh giá baseline (không Feature Selection) để so sánh...")
-    baseline = evaluate_on_full_data(X_train, X_test, y_train, y_test, full_mask, args.classifier)
+    baseline = evaluate_on_full_data(X_train, X_test, y_train, y_test, full_mask, eval_classifier)
 
     with open(os.path.join(args.output_dir, "selected_features.json"), "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2)

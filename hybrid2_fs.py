@@ -80,7 +80,8 @@ def compute_shap_scores(X: pd.DataFrame, y: pd.Series, sample_size: int, random_
 
     logger.info("Đang huấn luyện XGBoost trên %d dòng để tính SHAP...", len(X_sub))
     model = XGBClassifier(
-        n_estimators=200, max_depth=6, eval_metric="logloss",
+        # Không ép eval_metric cố định - để XGBoost tự chọn theo số lớp của y
+        n_estimators=200, max_depth=6,
         random_state=random_state, n_jobs=-1, verbosity=0,
     )
     model.fit(X_sub, y_sub)
@@ -89,15 +90,25 @@ def compute_shap_scores(X: pd.DataFrame, y: pd.Series, sample_size: int, random_
     explainer = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(X_sub)
 
-    # Với phân loại nhị phân, shap_values có thể là 1 mảng (n_samples, n_features)
-    # hoặc list 2 phần tử (1 cho mỗi lớp) tùy phiên bản XGBoost/SHAP - xử lý cả 2 trường hợp.
+    # Dạng trả về của shap_values tùy phiên bản XGBoost/SHAP và tùy nhị phân/đa lớp:
+    #   - Nhị phân: 1 mảng (n_samples, n_features)
+    #   - Đa lớp (list): list gồm K mảng (n_samples, n_features), mỗi phần tử ứng 1 lớp
+    #   - Đa lớp (ndarray 3 chiều): (n_samples, n_features, K) hoặc (K, n_samples, n_features)
+    # Với đa lớp, LẤY TRUNG BÌNH |SHAP| qua TẤT CẢ các lớp (không chỉ 1 lớp) để phản ánh
+    # đúng tầm quan trọng tổng thể của đặc trưng trên toàn bộ bài toán phân loại.
     if isinstance(shap_values, list):
-        shap_values = shap_values[-1]
-    shap_values = np.array(shap_values)
-    if shap_values.ndim == 3:   # (n_classes, n_samples, n_features) - lấy lớp cuối (Attack)
-        shap_values = shap_values[-1]
+        stacked = np.stack([np.abs(sv) for sv in shap_values], axis=0)  # (K, n_samples, n_features)
+        mean_abs_shap = stacked.mean(axis=(0, 1))
+    else:
+        shap_values = np.array(shap_values)
+        if shap_values.ndim == 3:
+            # Xác định trục nào là "lớp" (K thường nhỏ hơn hẳn n_samples và n_features)
+            class_axis = int(np.argmin(shap_values.shape))
+            mean_abs_shap = np.abs(shap_values).mean(axis=class_axis)
+            mean_abs_shap = mean_abs_shap.mean(axis=0)
+        else:
+            mean_abs_shap = np.abs(shap_values).mean(axis=0)
 
-    mean_abs_shap = np.abs(shap_values).mean(axis=0)
     return pd.Series(mean_abs_shap, index=X.columns)
 
 
