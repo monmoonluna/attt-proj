@@ -46,18 +46,26 @@ def generate_dashboard():
     
     # Convergence images
     conv_imgs = [
-        ("CICIDS2017: GA Hội Tụ (5 đặc trưng)", os.path.join(ROOT_DIR, "output", "CICIDS2017_multi", "fs_ga", "convergence.png")),
-        ("CICIDS2017: PSO Hội Tụ (Đa lớp)", os.path.join(ROOT_DIR, "output", "CICIDS2017_multi", "fs_pso", "convergence.png")),
-        ("UNSW-NB15: Hybrid 1 GA Hội Tụ", os.path.join(ROOT_DIR, "output", "UNSW_multi", "fs_hybrid1_ga", "convergence.png")),
-        ("CICDDoS2019: Hybrid 1 PSO Hội Tụ", os.path.join(ROOT_DIR, "output", "CICDDoS2019_multi", "fs_hybrid1_pso", "convergence.png")),
+        ("CICIDS2017: Hybrid 1 GA v2 Tối Ưu (6 ĐT)", os.path.join(ROOT_DIR, "output", "CICIDS2017", "fs_hybrid1_ga_v2", "convergence.png")),
+        ("CICIDS2017: PSO v2 Khắc Phục Hội Tụ Sớm", os.path.join(ROOT_DIR, "output", "CICIDS2017", "fs_pso_v2", "convergence.png")),
+        ("CICIDS2017 Multi: GA Hội Tụ (Đa lớp)", os.path.join(ROOT_DIR, "output", "CICIDS2017_multi", "fs_ga", "convergence.png")),
+        ("CICIDS2017 Multi: PSO Hội Tụ (Đa lớp)", os.path.join(ROOT_DIR, "output", "CICIDS2017_multi", "fs_pso", "convergence.png")),
+        ("CICDDoS2019: Hybrid 1 GA v2 (3 ĐT)", os.path.join(ROOT_DIR, "output", "CICDDoS2019", "fs_hybrid1_ga_v2", "convergence.png")),
+        ("CICDDoS2019 Multi: Hybrid 1 PSO Hội Tụ", os.path.join(ROOT_DIR, "output", "CICDDoS2019_multi", "fs_hybrid1_pso", "convergence.png")),
+        ("UNSW-NB15: Hybrid 1 GA v2 (3 ĐT)", os.path.join(ROOT_DIR, "output", "UNSW", "fs_hybrid1_ga_v2", "convergence.png")),
+        ("UNSW-NB15 Multi: Hybrid 1 GA Hội Tụ", os.path.join(ROOT_DIR, "output", "UNSW_multi", "fs_hybrid1_ga", "convergence.png")),
     ]
 
     # EDA images
     eda_imgs = [
-        ("CICIDS2017: Tương Quan Đặc Trưng & Ma Trận", os.path.join(ROOT_DIR, "eda_output", "CICIDS2017", "04_correlation_matrix.png")),
-        ("CICIDS2017: Xếp Hạng Mutual Information", os.path.join(ROOT_DIR, "eda_output", "CICIDS2017", "06_feature_importance_mi.png")),
-        ("UNSW-NB15: Phân Bố Lưu Lượng & Tấn Công", os.path.join(ROOT_DIR, "eda_output", "UNSW", "04_correlation_matrix.png")),
-        ("CICDDoS2019: Ma Trận Tương Quan", os.path.join(ROOT_DIR, "eda_output", "CICDDoS2019", "04_correlation_matrix.png")),
+        ("CICIDS2017: Ma Trận Tương Quan Đặc Trưng (Correlation Heatmap)", os.path.join(ROOT_DIR, "eda_output", "CICIDS2017", "correlation_heatmap.png")),
+        ("CICIDS2017: Xếp Hạng Đặc Trưng Mutual Information", os.path.join(ROOT_DIR, "eda_output", "CICIDS2017", "mutual_information.png")),
+        ("CICIDS2017: Phân Bố Lưu Lượng Bình Thường vs Tấn Công", os.path.join(ROOT_DIR, "eda_output", "CICIDS2017", "class_distribution.png")),
+        ("CICIDS2017: Biểu Đồ Phân Tán Không Gian PCA 2D", os.path.join(ROOT_DIR, "eda_output", "CICIDS2017", "pca_scatter.png")),
+        ("CICDDoS2019: Ma Trận Tương Quan Đặc Trưng", os.path.join(ROOT_DIR, "eda_output", "CICDDoS2019", "correlation_heatmap.png")),
+        ("CICDDoS2019: Xếp Hạng Mutual Information", os.path.join(ROOT_DIR, "eda_output", "CICDDoS2019", "mutual_information.png")),
+        ("UNSW-NB15: Ma Trận Tương Quan Đặc Trưng", os.path.join(ROOT_DIR, "eda_output", "UNSW", "correlation_heatmap.png")),
+        ("UNSW-NB15: Xếp Hạng Mutual Information", os.path.join(ROOT_DIR, "eda_output", "UNSW", "mutual_information.png")),
     ]
 
     html_content = f"""<!DOCTYPE html>
@@ -530,3 +538,4 @@ def generate_dashboard():
 
 if __name__ == "__main__":
     generate_dashboard()
+
