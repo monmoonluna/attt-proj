@@ -37,6 +37,14 @@ Tài liệu này chứa các quy tắc, kiến trúc và chỉ dẫn vận hành
      - **Dữ liệu** $\rightarrow$ đặt vào `data/`.
      - **Kết quả xuất ra** $\rightarrow$ đặt vào `output/` hoặc `eda_output/`.
    - **Tuyệt đối KHÔNG tạo thêm file `.py`, `.ipynb`, `.docx` hay tài liệu linh tinh ở thư mục gốc (`root`)**. Thư mục gốc chỉ được chứa file cấu hình dự án (`AGENTS.md`, `.gitignore`, `README.md`, `requirements.txt`).
+5. **Chuẩn Thiết Kế & Văn Phong "Human-Crafted" — Tuyệt đối Không "AI hóa" (Anti-AI Aesthetic & Academic Tone)**:
+   - **Tư tưởng chủ đạo**: Mọi giao diện (Dashboard HTML, Web report), biểu đồ, notebook và tài liệu văn bản phải được thiết kế và hành văn tự nhiên, chỉn chu theo phong cách của **kỹ sư / nhà nghiên cứu con người**, tuyệt đối không mang dáng dấp của template AI tự sinh.
+   - **Các nguyên tắc cấm kỵ và chuẩn mực bắt buộc**:
+     1. **Xóa sạch Emoji (Zero Emoji Spam)**: Nghiêm cấm chèn emoji trang trí (`🛡️`, `📌`, `💡`, `📉`, `⭐`, `⚡`, `🏆`, `🌌`, `🔥`, `📊`, `🎯`, `📈`, `🚀`, `⚠️`, `🚨`) vào trước tiêu đề, nút bấm, tab, thẻ badge, bảng biểu hay văn bản. Phân cấp giao diện bằng typography, font-weight, khoảng trắng và phân cấp heading chuẩn mực.
+     2. **Loại bỏ hoàn toàn văn phong AI khoa trương (No AI Buzzwords & Hype)**: Tuyệt đối không dùng các từ ngữ giật gân, sáo rỗng (*"đột phá ngoạn mục"*, *"kỷ lục"*, *"huyết mạch"*, *"thước đo vàng"*, *"bắt trọn"*, *"đỉnh cao"*). Luôn hành văn khách quan, chính xác, khoa học và đi thẳng vào số liệu định lượng (*"Tỷ lệ giảm chiều cao nhất"*, *"Chỉ số đánh giá chính"*, *"Cải thiện F1-Macro nhờ loại bỏ nhiễu"*).
+     3. **Không dùng Header kiểu Landing Page / Crypto SaaS**: Tránh xa các khối header to đùng bo tròn màu gradient tím than bóng bẩy kèm badge trong suốt. Thay bằng Topbar & Project Header học thuật nền trắng hoặc slate nhã nhặn, hiển thị rõ metadata đồ án (*Học phần ATTT, Mã đề tài 2.18, Bộ môn, Thời gian cập nhật*).
+     4. **Căn lề số học chuẩn quốc tế (Scientific Data Table Formatting)**: Trong mọi bảng số liệu, các cột định lượng (*Số ĐT $k$, Tỷ lệ giảm %, Accuracy, F1-macro, Thời gian*) **bắt buộc căn phải (`text-align: right`)** và bật `font-variant-numeric: tabular-nums` để các chữ số và dấu thập phân thẳng hàng tắp. Cột văn bản căn trái (`text-align: left`). Hàng đề xuất dùng màu xanh ngọc lục bảo rất nhạt (`#f0fdf4`), dịu mắt và hài hòa.
+     5. **Bảng màu trung tính & Thiết kế phẳng hiện đại (Subdued Neutral Palette & Flat UI)**: Sử dụng bảng màu Slate & Academic Navy (`#0f172a`, `#1e3a8a`, `#64748b`, `#f8fafc`). Thanh Tab bar phẳng có gạch chân active 2px (chuẩn GitHub/Vercel/PapersWithCode), nút lọc dạng Segmented Button, thẻ card phẳng viền mảnh 1px, không lạm dụng bóng đổ to hay bảng màu đồ chơi rainbow.
 
 ---
 
