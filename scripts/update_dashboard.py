@@ -157,31 +157,60 @@ def generate_dashboard():
     # Images
     img_arch = encode_img_base64(os.path.join(ROOT_DIR, "docs", "assets", "quy-trinh-nids.png"))
 
-    conv_imgs = [
-        ("CICIDS2017: Hybrid 1 GA v2 Tối Ưu (6 ĐT)", os.path.join(OUTPUT_DIR, "CICIDS2017", "fs_hybrid1_ga_v2", "convergence.png")),
-        ("CICIDS2017: PSO v2 Khắc Phục Hội Tụ Sớm", os.path.join(OUTPUT_DIR, "CICIDS2017", "fs_pso_v2", "convergence.png")),
-        ("CICIDS2017 Multi: GA Hội Tụ (7 Lớp)", os.path.join(OUTPUT_DIR, "CICIDS2017_multi", "fs_ga", "convergence.png")),
-        ("CICIDS2017 Multi: PSO Hội Tụ (7 Lớp)", os.path.join(OUTPUT_DIR, "CICIDS2017_multi", "fs_pso", "convergence.png")),
-        ("CICDDoS2019: Hybrid 1 GA v2 (3 ĐT)", os.path.join(OUTPUT_DIR, "CICDDoS2019", "fs_hybrid1_ga_v2", "convergence.png")),
-        ("CICDDoS2019 Multi: Hybrid 1 PSO Hội Tụ", os.path.join(OUTPUT_DIR, "CICDDoS2019_multi", "fs_hybrid1_pso", "convergence.png")),
-        ("UNSW-NB15: Hybrid 1 GA v2 (3 ĐT)", os.path.join(OUTPUT_DIR, "UNSW", "fs_hybrid1_ga_v2", "convergence.png")),
-        ("UNSW-NB15 Multi: Hybrid 1 GA Hội Tụ (10 Lớp)", os.path.join(OUTPUT_DIR, "UNSW_multi", "fs_hybrid1_ga", "convergence.png")),
+    # Gallery data structured into 4 logical groups
+    conv_data = [
+        ("CICIDS2017: Hybrid 1 GA v2 Tối Ưu (6 ĐT)", os.path.join(OUTPUT_DIR, "CICIDS2017", "fs_hybrid1_ga_v2", "convergence.png"), "Hybrid GA", "Hội tụ về 6 đặc trưng tối ưu ở thế hệ thứ 14, F1 đạt 99.59%."),
+        ("CICIDS2017: PSO v2 Khắc Phục Hội Tụ Sớm", os.path.join(OUTPUT_DIR, "CICIDS2017", "fs_pso_v2", "convergence.png"), "PSO v2", "Cơ chế tái khởi tạo (Reset) giúp hạt thoát bẫy cực tiểu địa phương thành công."),
+        ("CICIDS2017 Multi: GA Hội Tụ (7 Lớp)", os.path.join(OUTPUT_DIR, "CICIDS2017_multi", "fs_ga", "convergence.png"), "Multi GA", "Tối ưu phân loại 7 nhóm tấn công qua 20 thế hệ trên không gian 52 đặc trưng."),
+        ("CICIDS2017 Multi: PSO Hội Tụ (7 Lớp)", os.path.join(OUTPUT_DIR, "CICIDS2017_multi", "fs_pso", "convergence.png"), "Multi PSO", "Bầy hạt tìm ra tập 10 đặc trưng đạt F1-macro 95.57% vượt trội."),
+        ("CICDDoS2019: Hybrid 1 GA v2 (3 ĐT)", os.path.join(OUTPUT_DIR, "CICDDoS2019", "fs_hybrid1_ga_v2", "convergence.png"), "Hybrid GA", "Giảm chiều từ 67 xuống chỉ 3 đặc trưng cốt lõi mà F1 vẫn đạt 99.33%."),
+        ("CICDDoS2019 Multi: Hybrid 1 PSO Hội Tụ", os.path.join(OUTPUT_DIR, "CICDDoS2019_multi", "fs_hybrid1_pso", "convergence.png"), "Hybrid PSO", "Hội tụ ổn định trên kịch bản phân loại đa dạng biến thể tấn công DDoS."),
+        ("UNSW-NB15: Hybrid 1 GA v2 (3 ĐT)", os.path.join(OUTPUT_DIR, "UNSW", "fs_hybrid1_ga_v2", "convergence.png"), "Hybrid GA", "Thu hẹp còn 3 đặc trưng duy trì độ chính xác phát hiện xâm nhập 86.32%."),
+        ("UNSW-NB15 Multi: Hybrid 1 GA Hội Tụ (10 Lớp)", os.path.join(OUTPUT_DIR, "UNSW_multi", "fs_hybrid1_ga", "convergence.png"), "Multi GA", "Chỉ với 6 đặc trưng đạt F1-macro 55.50%, vượt qua mốc Baseline 42 ĐT.")
     ]
 
-    eda_imgs = [
-        ("CICIDS2017: Ma Trận Tương Quan Đặc Trưng (Correlation Heatmap)", os.path.join(ROOT_DIR, "eda_output", "CICIDS2017", "correlation_heatmap.png")),
-        ("CICIDS2017: Xếp Hạng Đặc Trưng Mutual Information", os.path.join(ROOT_DIR, "eda_output", "CICIDS2017", "mutual_information.png")),
-        ("CICIDS2017: Phân Bố Lưu Lượng Bình Thường vs Tấn Công", os.path.join(ROOT_DIR, "eda_output", "CICIDS2017", "class_distribution.png")),
-        ("CICIDS2017: Biểu Đồ Phân Tán Không Gian PCA 2D", os.path.join(ROOT_DIR, "eda_output", "CICIDS2017", "pca_scatter.png")),
-        ("CICDDoS2019: Ma Trận Tương Quan Đặc Trưng", os.path.join(ROOT_DIR, "eda_output", "CICDDoS2019", "correlation_heatmap.png")),
-        ("CICDDoS2019: Xếp Hạng Mutual Information", os.path.join(ROOT_DIR, "eda_output", "CICDDoS2019", "mutual_information.png")),
-        ("CICDDoS2019: Phân Bố Lưu Lượng Kịch Bản DDoS", os.path.join(ROOT_DIR, "eda_output", "CICDDoS2019", "class_distribution.png")),
-        ("CICDDoS2019: Biểu Đồ Phân Tán Không Gian PCA 2D", os.path.join(ROOT_DIR, "eda_output", "CICDDoS2019", "pca_scatter.png")),
-        ("UNSW-NB15: Ma Trận Tương Quan Đặc Trưng", os.path.join(ROOT_DIR, "eda_output", "UNSW", "correlation_heatmap.png")),
-        ("UNSW-NB15: Xếp Hạng Mutual Information", os.path.join(ROOT_DIR, "eda_output", "UNSW", "mutual_information.png")),
-        ("UNSW-NB15: Phân Bố 10 Lớp Lưu Lượng Mạng", os.path.join(ROOT_DIR, "eda_output", "UNSW", "class_distribution.png")),
-        ("UNSW-NB15: Biểu Đồ Phân Tán Không Gian PCA 2D", os.path.join(ROOT_DIR, "eda_output", "UNSW", "pca_scatter.png")),
+    eda_cicids_data = [
+        ("Ma Trận Tương Quan (Correlation Heatmap)", os.path.join(ROOT_DIR, "eda_output", "CICIDS2017", "correlation_heatmap.png"), "Correlation", "Phát hiện các cặp đặc trưng dư thừa có hệ số tương quan tuyến tính rất cao (> 0.9)."),
+        ("Xếp Hạng Đặc Trưng Mutual Information", os.path.join(ROOT_DIR, "eda_output", "CICIDS2017", "mutual_information.png"), "Mutual Info", "Đo lường lượng thông tin chia sẻ giữa từng thuộc tính gói tin và nhãn tấn công."),
+        ("Phân Bố Lưu Lượng Bình Thường vs Tấn Công", os.path.join(ROOT_DIR, "eda_output", "CICIDS2017", "class_distribution.png"), "Distribution", "Trực quan hóa tỷ lệ mất cân bằng nghiêm trọng giữa Benign và các nhóm tấn công."),
+        ("Biểu Đồ Phân Tán Không Gian PCA 2D", os.path.join(ROOT_DIR, "eda_output", "CICIDS2017", "pca_scatter.png"), "PCA 2D", "Chiếu giảm chiều 52 thuộc tính xuống 2 thành phần chính để quan sát độ tách biệt cụm.")
     ]
+
+    eda_cicddos_data = [
+        ("Ma Trận Tương Quan Đặc Trưng", os.path.join(ROOT_DIR, "eda_output", "CICDDoS2019", "correlation_heatmap.png"), "Correlation", "Mức độ phụ thuộc tương quan giữa các đặc trưng luồng gói tin Forward và Backward."),
+        ("Xếp Hạng Mutual Information", os.path.join(ROOT_DIR, "eda_output", "CICDDoS2019", "mutual_information.png"), "Mutual Info", "Destination Port và URG Flag Count là hai thuộc tính đóng góp thông tin chi phối cao nhất."),
+        ("Phân Bố Lưu Lượng Kịch Bản DDoS", os.path.join(ROOT_DIR, "eda_output", "CICDDoS2019", "class_distribution.png"), "Distribution", "Tần suất lưu lượng của các biến thể tấn công DDoS (Syn, UDP, MSSQL, NetBIOS, LDAP,...)."),
+        ("Biểu Đồ Phân Tán Không Gian PCA 2D", os.path.join(ROOT_DIR, "eda_output", "CICDDoS2019", "pca_scatter.png"), "PCA 2D", "Không gian biểu diễn các kịch bản DDoS có ranh giới phân tách rất rõ nét.")
+    ]
+
+    eda_unsw_data = [
+        ("Ma Trận Tương Quan Đặc Trưng", os.path.join(ROOT_DIR, "eda_output", "UNSW", "correlation_heatmap.png"), "Correlation", "Cấu trúc tương quan phức tạp giữa các thuộc tính kết nối TCP, thời gian dịch vụ và luồng."),
+        ("Xếp Hạng Mutual Information", os.path.join(ROOT_DIR, "eda_output", "UNSW", "mutual_information.png"), "Mutual Info", "Xác định các thuộc tính có khả năng phân biệt cao nhất đối với các kỹ thuật tấn công tinh vi."),
+        ("Phân Bố 10 Lớp Lưu Lượng Mạng", os.path.join(ROOT_DIR, "eda_output", "UNSW", "class_distribution.png"), "Distribution", "Độ lệch phân phối giữa lớp Normal và các kỹ thuật tấn công hiểm hóc (Fuzzers, Analysis)."),
+        ("Biểu Đồ Phân Tán Không Gian PCA 2D", os.path.join(ROOT_DIR, "eda_output", "UNSW", "pca_scatter.png"), "PCA 2D", "Các lớp tấn công tinh vi có sự chồng lấn không gian rất lớn với lưu lượng bình thường.")
+    ]
+
+    total_gallery_count = len(conv_data) + len(eda_cicids_data) + len(eda_cicddos_data) + len(eda_unsw_data)
+
+    def render_gallery_grid(items, prefix_icon):
+        grid_html = '<div class="gallery-grid">'
+        for title, path, badge, desc in items:
+            b64 = encode_img_base64(path)
+            if b64:
+                grid_html += f"""
+                <div class="gallery-card" onclick="openModal('{b64}')">
+                    <img src="{b64}" alt="{title}">
+                    <div class="gallery-caption">
+                        <div class="gallery-caption-title">
+                            <span>{prefix_icon} {title}</span>
+                            <span class="tag-pill tag-proposed">{badge}</span>
+                        </div>
+                        <div class="gallery-caption-desc">{desc}</div>
+                    </div>
+                </div>
+                """
+        grid_html += '</div>'
+        return grid_html
 
     html_content = f"""<!DOCTYPE html>
 <html lang="vi">
@@ -299,11 +328,13 @@ def generate_dashboard():
         .clf-dt {{ background: #f1f5f9; color: #475569; }}
 
         /* GALLERY */
-        .gallery-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 18px; }}
-        .gallery-card {{ background: #ffffff; border: 1px solid var(--card-border); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }}
-        .gallery-card:hover {{ transform: scale(1.015); box-shadow: 0 10px 20px -5px rgba(0,0,0,0.1); }}
-        .gallery-card img {{ width: 100%; height: 280px; object-fit: contain; background: #ffffff; padding: 10px; border-bottom: 1px solid #f1f5f9; }}
-        .gallery-caption {{ padding: 12px 14px; font-size: 13px; font-weight: 600; color: var(--text-dark); background: #fafafa; margin-top: auto; }}
+        .gallery-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 18px; }}
+        .gallery-card {{ background: #ffffff; border: 1px solid var(--card-border); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; position: relative; }}
+        .gallery-card:hover {{ transform: translateY(-3px); box-shadow: 0 10px 20px -5px rgba(0,0,0,0.1); }}
+        .gallery-card img {{ width: 100%; height: 260px; object-fit: contain; background: #ffffff; padding: 10px; border-bottom: 1px solid #f1f5f9; }}
+        .gallery-caption {{ padding: 12px 15px; background: #fafafa; margin-top: auto; border-top: 1px solid #f8fafc; }}
+        .gallery-caption-title {{ font-size: 13px; font-weight: 700; color: var(--text-dark); display: flex; align-items: center; justify-content: space-between; gap: 8px; }}
+        .gallery-caption-desc {{ font-size: 11.5px; color: var(--text-muted); margin-top: 5px; line-height: 1.4; }}
 
         /* MODAL */
         .img-modal {{ display: none; position: fixed; z-index: 99999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 25px; }}
@@ -374,7 +405,7 @@ def generate_dashboard():
         </button>
         <button class="tab-btn" onclick="switchMainTab('gallery')">
             <span>🖼️ Thư viện Biểu đồ</span>
-            <span class="tab-badge">{len(conv_imgs) + len(eda_imgs)}</span>
+            <span class="tab-badge">{total_gallery_count}</span>
         </button>
     </div>
 
@@ -654,49 +685,59 @@ def generate_dashboard():
 
     <!-- ==================== TAB 5: GALLERY ==================== -->
     <div id="tab-gallery" class="tab-pane">
-        <!-- SUB PILLS -->
+        <!-- SUB PILLS BAR -->
         <div class="sub-pills-bar">
-            <span class="sub-pill-label">Lọc Hình Ảnh:</span>
-            <button class="pill-btn active" onclick="filterGalleryCards('all')">Tất cả ({len(conv_imgs) + len(eda_imgs)})</button>
-            <button class="pill-btn" onclick="filterGalleryCards('conv')">Đường cong Hội tụ GA / PSO ({len(conv_imgs)})</button>
-            <button class="pill-btn" onclick="filterGalleryCards('eda')">Thăm dò dữ liệu EDA & Tương quan ({len(eda_imgs)})</button>
+            <span class="sub-pill-label">Lọc Theo Chuyên Đề:</span>
+            <button class="pill-btn active" onclick="filterGalleryCards('all')">🌟 Tất cả ({total_gallery_count})</button>
+            <button class="pill-btn" onclick="filterGalleryCards('conv')">📈 Đường cong Hội tụ GA / PSO ({len(conv_data)})</button>
+            <button class="pill-btn" onclick="filterGalleryCards('cicids2017')">🌐 EDA CICIDS2017 ({len(eda_cicids_data)})</button>
+            <button class="pill-btn" onclick="filterGalleryCards('cicddos2019')">⚡ EDA CICDDoS2019 ({len(eda_cicddos_data)})</button>
+            <button class="pill-btn" onclick="filterGalleryCards('unsw')">🛡️ EDA UNSW-NB15 ({len(eda_unsw_data)})</button>
         </div>
 
-        <div class="card">
+        <!-- 1. CONVERGENCE -->
+        <div class="card g-sec g-sec-conv">
             <div class="card-header">
-                <span>THƯ VIỆN BIỂU ĐỒ TRỰC QUAN HÓA (Click vào ảnh để phóng to toàn màn hình)</span>
-                <span class="badge-tag" style="background: #e0f2fe; color: #0369a1;">{len(conv_imgs) + len(eda_imgs)} Biểu đồ Vector & Độ Nét Cao</span>
+                <span>1. TIẾN TRÌNH HỘI TỤ TỐI ƯU HÓA CỦA THUẬT TOÁN GA & PSO (8 BIỂU ĐỒ)</span>
+                <span class="badge-tag" style="background: #e0f2fe; color: #0369a1;">Fitness Evolution</span>
             </div>
-            <div class="gallery-grid">
-    """
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Biểu đồ tiến hóa hàm thích nghi (Fitness) qua từng thế hệ/vòng lặp của thuật toán Di truyền (GA) và Bầy đàn hạt (PSO). Thể hiện khả năng cân bằng giữa tối đa hóa F1-Score và cực tiểu hóa số chiều đặc trưng.</p>
+            {render_gallery_grid(conv_data, "📈")}
+        </div>
 
-    for cap, p in conv_imgs:
-        b64 = encode_img_base64(p)
-        if b64:
-            html_content += f"""
-                <div class="gallery-card g-item g-conv" onclick="openModal('{b64}')">
-                    <img src="{b64}" alt="{cap}">
-                    <div class="gallery-caption">📈 {cap}</div>
-                </div>
-            """
-
-    for cap, p in eda_imgs:
-        b64 = encode_img_base64(p)
-        if b64:
-            html_content += f"""
-                <div class="gallery-card g-item g-eda" onclick="openModal('{b64}')">
-                    <img src="{b64}" alt="{cap}">
-                    <div class="gallery-caption">🔍 {cap}</div>
-                </div>
-            """
-
-    html_content += """
+        <!-- 2. CICIDS2017 EDA -->
+        <div class="card g-sec g-sec-cicids2017">
+            <div class="card-header">
+                <span>2. KHÁM PHÁ DỮ LIỆU & TƯƠNG QUAN ĐẶC TRƯNG — BỘ DỮ LIỆU CICIDS2017 (4 BIỂU ĐỒ)</span>
+                <span class="badge-tag" style="background: #e0f2fe; color: #0369a1;">52 Features &bull; 7 Classes</span>
             </div>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Đánh giá cấu trúc phân phối, mức độ tương quan tuyến tính giữa các thuộc tính lưu lượng mạng hiện đại và mức độ phân tách không gian PCA 2D của CICIDS2017.</p>
+            {render_gallery_grid(eda_cicids_data, "🔍")}
+        </div>
+
+        <!-- 3. CICDDOS2019 EDA -->
+        <div class="card g-sec g-sec-cicddos2019">
+            <div class="card-header">
+                <span>3. KHÁM PHÁ DỮ LIỆU & TƯƠNG QUAN ĐẶC TRƯNG — BỘ DỮ LIỆU CICDDOS2019 (4 BIỂU ĐỒ)</span>
+                <span class="badge-tag" style="background: #fef3c7; color: #92400e;">67 Features &bull; DDoS Scenarios</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Phân tích các biến thể tấn công DDoS và sự chi phối thông tin của các thuộc tính cổng dịch vụ (Destination Port, URG Flag Count). Đã loại bỏ Inbound artifact gây rò rỉ nhãn.</p>
+            {render_gallery_grid(eda_cicddos_data, "🔍")}
+        </div>
+
+        <!-- 4. UNSW-NB15 EDA -->
+        <div class="card g-sec g-sec-unsw">
+            <div class="card-header">
+                <span>4. KHÁM PHÁ DỮ LIỆU & TƯƠNG QUAN ĐẶC TRƯNG — BỘ DỮ LIỆU UNSW-NB15 (4 BIỂU ĐỒ)</span>
+                <span class="badge-tag" style="background: #f3e8ff; color: #7e22ce;">42 Features &bull; 10 Classes</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Đặc trưng lưu lượng mạng thực tế với 10 lớp tấn công tinh vi (Exploits, Fuzzers, Reconnaissance) có độ chồng lấn không gian rất cao so với lưu lượng bình thường.</p>
+            {render_gallery_grid(eda_unsw_data, "🔍")}
         </div>
     </div>
 
     <footer>
-        <p>Báo cáo Nghiên cứu Khoa học Đề tài 2.18 — NIDS Feature Selection</p>
+        <p>Báo cáo Nghiên cứu Khoa học Đề tài 2.18 &mdash; NIDS Feature Selection</p>
         <p>Khoa Công nghệ Thông tin &bull; Trường Đại học Bách Khoa &bull; Đại học Đà Nẵng</p>
     </footer>
 </div>
@@ -706,7 +747,9 @@ def generate_dashboard():
     <span class="img-modal-close">&times;</span>
     <img id="modalImg" src="" alt="Phóng to">
 </div>
+"""
 
+    html_content += """
 <script>
     // 1. Chuyển Main Tabs lớn
     function switchMainTab(tabId) {
@@ -756,17 +799,17 @@ def generate_dashboard():
         }
     }
 
-    // 4. Lọc Gallery
+    // 4. Lọc Chuyên đề trong Tab Thư viện Biểu đồ
     function filterGalleryCards(type) {
         document.querySelectorAll('#tab-gallery .pill-btn').forEach(b => b.classList.remove('active'));
         event.target.classList.add('active');
 
-        const items = document.querySelectorAll('.g-item');
+        const sections = document.querySelectorAll('.g-sec');
         if (type === 'all') {
-            items.forEach(it => it.style.display = 'flex');
+            sections.forEach(s => s.style.display = 'block');
         } else {
-            items.forEach(it => {
-                it.style.display = it.classList.contains('g-' + type) ? 'flex' : 'none';
+            sections.forEach(s => {
+                s.style.display = s.classList.contains('g-sec-' + type) ? 'block' : 'none';
             });
         }
     }
