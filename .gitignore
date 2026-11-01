@@ -3,3 +3,10 @@ data/**/*.csv
 
 # Generated output
 output/**/*.csv
+
+# Cache & Temp files
+.DS_Store
+__pycache__/
+*.pyc
+~$*
+.ipynb_checkpoints/
