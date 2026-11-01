@@ -361,48 +361,72 @@ def generate_dashboard():
             color: var(--text-muted);
         }}
 
-        /* MAIN TABS */
+        /* MAIN TABS NAVIGATION (HIGH-AFFORDANCE SEGMENTED BAR) */
         .main-tabs-bar {{
-            display: flex;
-            border-bottom: 1px solid var(--border-medium);
-            margin-bottom: 20px;
-            gap: 24px;
-            overflow-x: auto;
-        }}
-        .tab-item {{
-            background: transparent;
-            border: none;
-            border-bottom: 2px solid transparent;
-            padding: 10px 4px;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-muted);
-            cursor: pointer;
+            background: rgba(241, 245, 249, 0.96);
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 6px 10px;
+            margin-bottom: 22px;
             display: flex;
             align-items: center;
             gap: 6px;
+            overflow-x: auto;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            position: sticky;
+            top: 10px;
+            z-index: 999;
+            backdrop-filter: blur(8px);
+        }}
+        .main-tabs-label {{
+            font-size: 11px;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 6px 12px 6px 4px;
+            border-right: 1px solid #cbd5e1;
+            margin-right: 4px;
             white-space: nowrap;
-            transition: color 0.15s, border-color 0.15s;
+        }}
+        .tab-item {{
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 7px;
+            padding: 8px 15px;
+            font-size: 13.5px;
+            font-weight: 500;
+            color: #475569;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            transition: all 0.15s ease;
         }}
         .tab-item:hover {{
-            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.75);
+            color: #0f172a;
+            border-color: #cbd5e1;
         }}
         .tab-item.active {{
-            color: var(--primary);
-            border-bottom-color: var(--primary);
-            font-weight: 600;
+            background: #ffffff;
+            color: #1e3a8a;
+            border: 1px solid #94a3b8;
+            box-shadow: 0 2px 5px -1px rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+            font-weight: 700;
         }}
         .tab-count {{
-            background: #f1f5f9;
-            color: var(--text-muted);
-            padding: 1px 6px;
-            border-radius: 10px;
+            background: #e2e8f0;
+            color: #475569;
+            padding: 1px 7px;
+            border-radius: 9999px;
             font-size: 11px;
-            font-weight: 600;
+            font-weight: 700;
         }}
         .tab-item.active .tab-count {{
-            background: #e0f2fe;
-            color: #0369a1;
+            background: #1e3a8a;
+            color: #ffffff;
         }}
 
         /* SUB-PILLS (FILTER BAR) */
@@ -775,24 +799,25 @@ def generate_dashboard():
         </div>
     </div>
 
-    <!-- MAIN TABS NAVIGATION -->
+    <!-- MAIN TABS NAVIGATION (HIGH-AFFORDANCE SEGMENTED BAR) -->
     <div class="main-tabs-bar">
+        <span class="main-tabs-label">Chuyển Tab:</span>
         <button class="tab-item active" onclick="switchMainTab('overview')">
-            <span>Tổng quan quy trình</span>
+            <span>1. Tổng quan quy trình</span>
         </button>
         <button class="tab-item" onclick="switchMainTab('binary')">
-            <span>Phân loại nhị phân</span>
+            <span>2. Phân loại nhị phân</span>
             <span class="tab-count">{len(res_cic_bin) + len(res_dos_bin) + len(res_unsw_bin) + len(res_nsl)}</span>
         </button>
         <button class="tab-item" onclick="switchMainTab('multiclass')">
-            <span>Phân loại đa lớp</span>
+            <span>3. Phân loại đa lớp</span>
             <span class="tab-count">{len(res_cic_mul) + len(res_dos_mul) + len(res_unsw_mul)}</span>
         </button>
         <button class="tab-item" onclick="switchMainTab('advanced')">
-            <span>Đa mô hình & Bóc tách đặc trưng</span>
+            <span>4. Đa mô hình & Bóc tách đặc trưng</span>
         </button>
         <button class="tab-item" onclick="switchMainTab('gallery')">
-            <span>Đối chiếu trực quan</span>
+            <span>5. Đối chiếu trực quan</span>
             <span class="tab-count">{total_gallery_count}</span>
         </button>
     </div>
