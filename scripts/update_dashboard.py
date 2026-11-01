@@ -157,43 +157,51 @@ def generate_dashboard():
     # Images
     img_arch = encode_img_base64(os.path.join(ROOT_DIR, "docs", "assets", "quy-trinh-nids.png"))
 
-    # Gallery data structured into 4 logical groups
+    # 1. PCA 2D: Cross-dataset comparison
+    pca_data = [
+        ("CICIDS2017: Chiếu Không Gian PCA 2D (52 Đặc Trưng)", os.path.join(ROOT_DIR, "eda_output", "CICIDS2017", "pca_scatter.png"), "CICIDS2017", "Các cụm tấn công DoS, Brute Force tách biệt tương đối tốt so với lưu lượng Benign."),
+        ("CICDDoS2019: Chiếu Không Gian PCA 2D (67 Đặc Trưng)", os.path.join(ROOT_DIR, "eda_output", "CICDDoS2019", "pca_scatter.png"), "CICDDoS2019", "Cụm tấn công DDoS tách biệt hoàn toàn ở góc riêng, mô hình rất dễ đạt F1 > 99%."),
+        ("UNSW-NB15: Chiếu Không Gian PCA 2D (42 Đặc Trưng)", os.path.join(ROOT_DIR, "eda_output", "UNSW", "pca_scatter.png"), "UNSW-NB15", "Độ chồng lấn không gian rất nghiêm trọng giữa Normal và các lớp tấn công tinh vi (Fuzzers, Analysis).")
+    ]
+
+    # 2. Correlation Heatmap: Cross-dataset comparison
+    heatmap_data = [
+        ("CICIDS2017: Ma Trận Tương Quan Tuyến Tính", os.path.join(ROOT_DIR, "eda_output", "CICIDS2017", "correlation_heatmap.png"), "CICIDS2017", "Xuất hiện nhiều khối vuông đỏ đậm (r >= 0.9) thể hiện các thuộc tính gói tin dư thừa cao."),
+        ("CICDDoS2019: Ma Trận Tương Quan Tuyến Tính", os.path.join(ROOT_DIR, "eda_output", "CICDDoS2019", "correlation_heatmap.png"), "CICDDoS2019", "Tương quan rất mạnh giữa số gói tin Forward/Backward và tốc độ truyền bit/giây."),
+        ("UNSW-NB15: Ma Trận Tương Quan Tuyến Tính", os.path.join(ROOT_DIR, "eda_output", "UNSW", "correlation_heatmap.png"), "UNSW-NB15", "Cấu trúc phân tán hơn, phản ánh tính đa dạng phức tạp của lưu lượng mạng tổng hợp.")
+    ]
+
+    # 3. Mutual Information: Cross-dataset comparison
+    mi_data = [
+        ("CICIDS2017: Xếp Hạng Mutual Information Top 20", os.path.join(ROOT_DIR, "eda_output", "CICIDS2017", "mutual_information.png"), "CICIDS2017", "Lượng thông tin chia sẻ trải đều trên các biến độ dài gói tin và thời gian phiên."),
+        ("CICDDoS2019: Xếp Hạng Mutual Information Top 20", os.path.join(ROOT_DIR, "eda_output", "CICDDoS2019", "mutual_information.png"), "CICDDoS2019", "Destination Port và URG Flag Count sở hữu điểm MI vượt trội tuyệt đối, chi phối phân loại."),
+        ("UNSW-NB15: Xếp Hạng Mutual Information Top 20", os.path.join(ROOT_DIR, "eda_output", "UNSW", "mutual_information.png"), "UNSW-NB15", "Các thuộc tính sbytes, dbytes, sttl, ct_state_ttl đóng vai trò hạt nhân phân loại quan trọng.")
+    ]
+
+    # 4. Class Distribution: Cross-dataset comparison
+    dist_data = [
+        ("CICIDS2017: Phân Bố Lưu Lượng & Tấn Công", os.path.join(ROOT_DIR, "eda_output", "CICIDS2017", "class_distribution.png"), "CICIDS2017", "Lưu lượng Benign chiếm áp đảo (~80%), các lớp Infiltration, Botnet thuộc nhóm thiểu số."),
+        ("CICDDoS2019: Phân Bố Các Kịch Bản DDoS", os.path.join(ROOT_DIR, "eda_output", "CICDDoS2019", "class_distribution.png"), "CICDDoS2019", "Phân bố tần suất giữa các kịch bản DDoS khuếch đại UDP, MSSQL, Syn, NetBIOS, LDAP."),
+        ("UNSW-NB15: Phân Bố 10 Lớp Lưu Lượng Mạng", os.path.join(ROOT_DIR, "eda_output", "UNSW", "class_distribution.png"), "UNSW-NB15", "Mất cân bằng cực đoan giữa Normal và các lớp tấn công hiểm như Worms, Backdoors (&lt; 1%).")
+    ]
+
+    # 5. Convergence Curves: GA & PSO
     conv_data = [
-        ("CICIDS2017: Hybrid 1 GA v2 Tối Ưu (6 ĐT)", os.path.join(OUTPUT_DIR, "CICIDS2017", "fs_hybrid1_ga_v2", "convergence.png"), "Hybrid GA", "Hội tụ về 6 đặc trưng tối ưu ở thế hệ thứ 14, F1 đạt 99.59%."),
-        ("CICIDS2017: PSO v2 Khắc Phục Hội Tụ Sớm", os.path.join(OUTPUT_DIR, "CICIDS2017", "fs_pso_v2", "convergence.png"), "PSO v2", "Cơ chế tái khởi tạo (Reset) giúp hạt thoát bẫy cực tiểu địa phương thành công."),
-        ("CICIDS2017 Multi: GA Hội Tụ (7 Lớp)", os.path.join(OUTPUT_DIR, "CICIDS2017_multi", "fs_ga", "convergence.png"), "Multi GA", "Tối ưu phân loại 7 nhóm tấn công qua 20 thế hệ trên không gian 52 đặc trưng."),
-        ("CICIDS2017 Multi: PSO Hội Tụ (7 Lớp)", os.path.join(OUTPUT_DIR, "CICIDS2017_multi", "fs_pso", "convergence.png"), "Multi PSO", "Bầy hạt tìm ra tập 10 đặc trưng đạt F1-macro 95.57% vượt trội."),
-        ("CICDDoS2019: Hybrid 1 GA v2 (3 ĐT)", os.path.join(OUTPUT_DIR, "CICDDoS2019", "fs_hybrid1_ga_v2", "convergence.png"), "Hybrid GA", "Giảm chiều từ 67 xuống chỉ 3 đặc trưng cốt lõi mà F1 vẫn đạt 99.33%."),
-        ("CICDDoS2019 Multi: Hybrid 1 PSO Hội Tụ", os.path.join(OUTPUT_DIR, "CICDDoS2019_multi", "fs_hybrid1_pso", "convergence.png"), "Hybrid PSO", "Hội tụ ổn định trên kịch bản phân loại đa dạng biến thể tấn công DDoS."),
-        ("UNSW-NB15: Hybrid 1 GA v2 (3 ĐT)", os.path.join(OUTPUT_DIR, "UNSW", "fs_hybrid1_ga_v2", "convergence.png"), "Hybrid GA", "Thu hẹp còn 3 đặc trưng duy trì độ chính xác phát hiện xâm nhập 86.32%."),
-        ("UNSW-NB15 Multi: Hybrid 1 GA Hội Tụ (10 Lớp)", os.path.join(OUTPUT_DIR, "UNSW_multi", "fs_hybrid1_ga", "convergence.png"), "Multi GA", "Chỉ với 6 đặc trưng đạt F1-macro 55.50%, vượt qua mốc Baseline 42 ĐT.")
+        ("CICIDS2017: Hybrid 1 GA v2 (Nhị phân)", os.path.join(OUTPUT_DIR, "CICIDS2017", "fs_hybrid1_ga_v2", "convergence.png"), "GA Nhị phân", "Hội tụ về 6 đặc trưng tối ưu ở thế hệ thứ 14, F1 đạt 99.59%."),
+        ("CICIDS2017: PSO v2 (Nhị phân)", os.path.join(OUTPUT_DIR, "CICIDS2017", "fs_pso_v2", "convergence.png"), "PSO Nhị phân", "Cơ chế tái khởi tạo (Reset) giúp hạt thoát bẫy cực tiểu địa phương thành công."),
+        ("CICIDS2017 Multi: GA Hội Tụ (7 Lớp)", os.path.join(OUTPUT_DIR, "CICIDS2017_multi", "fs_ga", "convergence.png"), "GA Đa lớp", "Tối ưu phân loại 7 nhóm tấn công qua 20 thế hệ trên không gian 52 đặc trưng."),
+        ("CICIDS2017 Multi: PSO Hội Tụ (7 Lớp)", os.path.join(OUTPUT_DIR, "CICIDS2017_multi", "fs_pso", "convergence.png"), "PSO Đa lớp", "Bầy hạt tìm ra tập 10 đặc trưng đạt F1-macro 95.57% vượt trội."),
+        ("CICDDoS2019: Hybrid 1 GA v2 (Nhị phân)", os.path.join(OUTPUT_DIR, "CICDDoS2019", "fs_hybrid1_ga_v2", "convergence.png"), "GA Nhị phân", "Giảm chiều từ 67 xuống chỉ 3 đặc trưng cốt lõi mà F1 vẫn đạt 99.33%."),
+        ("CICDDoS2019 Multi: Hybrid 1 PSO Hội Tụ", os.path.join(OUTPUT_DIR, "CICDDoS2019_multi", "fs_hybrid1_pso", "convergence.png"), "PSO Đa lớp", "Hội tụ ổn định trên kịch bản phân loại đa dạng biến thể tấn công DDoS."),
+        ("UNSW-NB15: Hybrid 1 GA v2 (Nhị phân)", os.path.join(OUTPUT_DIR, "UNSW", "fs_hybrid1_ga_v2", "convergence.png"), "GA Nhị phân", "Thu hẹp còn 3 đặc trưng duy trì độ chính xác phát hiện xâm nhập 86.32%."),
+        ("UNSW-NB15 Multi: Hybrid 1 GA Hội Tụ (10 Lớp)", os.path.join(OUTPUT_DIR, "UNSW_multi", "fs_hybrid1_ga", "convergence.png"), "GA Đa lớp", "Chỉ với 6 đặc trưng đạt F1-macro 55.50%, vượt qua mốc Baseline 42 ĐT.")
     ]
 
-    eda_cicids_data = [
-        ("Ma Trận Tương Quan (Correlation Heatmap)", os.path.join(ROOT_DIR, "eda_output", "CICIDS2017", "correlation_heatmap.png"), "Correlation", "Phát hiện các cặp đặc trưng dư thừa có hệ số tương quan tuyến tính rất cao (> 0.9)."),
-        ("Xếp Hạng Đặc Trưng Mutual Information", os.path.join(ROOT_DIR, "eda_output", "CICIDS2017", "mutual_information.png"), "Mutual Info", "Đo lường lượng thông tin chia sẻ giữa từng thuộc tính gói tin và nhãn tấn công."),
-        ("Phân Bố Lưu Lượng Bình Thường vs Tấn Công", os.path.join(ROOT_DIR, "eda_output", "CICIDS2017", "class_distribution.png"), "Distribution", "Trực quan hóa tỷ lệ mất cân bằng nghiêm trọng giữa Benign và các nhóm tấn công."),
-        ("Biểu Đồ Phân Tán Không Gian PCA 2D", os.path.join(ROOT_DIR, "eda_output", "CICIDS2017", "pca_scatter.png"), "PCA 2D", "Chiếu giảm chiều 52 thuộc tính xuống 2 thành phần chính để quan sát độ tách biệt cụm.")
-    ]
+    total_gallery_count = len(pca_data) + len(heatmap_data) + len(mi_data) + len(dist_data) + len(conv_data)
 
-    eda_cicddos_data = [
-        ("Ma Trận Tương Quan Đặc Trưng", os.path.join(ROOT_DIR, "eda_output", "CICDDoS2019", "correlation_heatmap.png"), "Correlation", "Mức độ phụ thuộc tương quan giữa các đặc trưng luồng gói tin Forward và Backward."),
-        ("Xếp Hạng Mutual Information", os.path.join(ROOT_DIR, "eda_output", "CICDDoS2019", "mutual_information.png"), "Mutual Info", "Destination Port và URG Flag Count là hai thuộc tính đóng góp thông tin chi phối cao nhất."),
-        ("Phân Bố Lưu Lượng Kịch Bản DDoS", os.path.join(ROOT_DIR, "eda_output", "CICDDoS2019", "class_distribution.png"), "Distribution", "Tần suất lưu lượng của các biến thể tấn công DDoS (Syn, UDP, MSSQL, NetBIOS, LDAP,...)."),
-        ("Biểu Đồ Phân Tán Không Gian PCA 2D", os.path.join(ROOT_DIR, "eda_output", "CICDDoS2019", "pca_scatter.png"), "PCA 2D", "Không gian biểu diễn các kịch bản DDoS có ranh giới phân tách rất rõ nét.")
-    ]
-
-    eda_unsw_data = [
-        ("Ma Trận Tương Quan Đặc Trưng", os.path.join(ROOT_DIR, "eda_output", "UNSW", "correlation_heatmap.png"), "Correlation", "Cấu trúc tương quan phức tạp giữa các thuộc tính kết nối TCP, thời gian dịch vụ và luồng."),
-        ("Xếp Hạng Mutual Information", os.path.join(ROOT_DIR, "eda_output", "UNSW", "mutual_information.png"), "Mutual Info", "Xác định các thuộc tính có khả năng phân biệt cao nhất đối với các kỹ thuật tấn công tinh vi."),
-        ("Phân Bố 10 Lớp Lưu Lượng Mạng", os.path.join(ROOT_DIR, "eda_output", "UNSW", "class_distribution.png"), "Distribution", "Độ lệch phân phối giữa lớp Normal và các kỹ thuật tấn công hiểm hóc (Fuzzers, Analysis)."),
-        ("Biểu Đồ Phân Tán Không Gian PCA 2D", os.path.join(ROOT_DIR, "eda_output", "UNSW", "pca_scatter.png"), "PCA 2D", "Các lớp tấn công tinh vi có sự chồng lấn không gian rất lớn với lưu lượng bình thường.")
-    ]
-
-    total_gallery_count = len(conv_data) + len(eda_cicids_data) + len(eda_cicddos_data) + len(eda_unsw_data)
-
-    def render_gallery_grid(items, prefix_icon):
-        grid_html = '<div class="gallery-grid">'
+    def render_gallery_grid(items, prefix_icon, cols=3):
+        grid_class = "gallery-grid" if cols != 3 else "gallery-grid gallery-grid-3"
+        grid_html = f'<div class="{grid_class}">'
         for title, path, badge, desc in items:
             b64 = encode_img_base64(path)
             if b64:
@@ -329,6 +337,7 @@ def generate_dashboard():
 
         /* GALLERY */
         .gallery-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 18px; }}
+        .gallery-grid-3 {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px; }}
         .gallery-card {{ background: #ffffff; border: 1px solid var(--card-border); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; position: relative; }}
         .gallery-card:hover {{ transform: translateY(-3px); box-shadow: 0 10px 20px -5px rgba(0,0,0,0.1); }}
         .gallery-card img {{ width: 100%; height: 260px; object-fit: contain; background: #ffffff; padding: 10px; border-bottom: 1px solid #f1f5f9; }}
@@ -683,56 +692,67 @@ def generate_dashboard():
         </div>
     </div>
 
-    <!-- ==================== TAB 5: GALLERY ==================== -->
+    <!-- ==================== TAB 5: GALLERY (CROSS-DATASET COMPARISON) ==================== -->
     <div id="tab-gallery" class="tab-pane">
         <!-- SUB PILLS BAR -->
         <div class="sub-pills-bar">
-            <span class="sub-pill-label">Lọc Theo Chuyên Đề:</span>
-            <button class="pill-btn active" onclick="filterGalleryCards('all')">🌟 Tất cả ({total_gallery_count})</button>
+            <span class="sub-pill-label">So sánh Đối đầu:</span>
+            <button class="pill-btn active" onclick="filterGalleryCards('all')">🌟 Tất cả Chuyên đề ({total_gallery_count})</button>
+            <button class="pill-btn" onclick="filterGalleryCards('pca')">🌌 Phân tách Không gian PCA 2D ({len(pca_data)})</button>
+            <button class="pill-btn" onclick="filterGalleryCards('heatmap')">🔥 Ma trận Tương quan ({len(heatmap_data)})</button>
+            <button class="pill-btn" onclick="filterGalleryCards('mi')">📊 Xếp hạng Mutual Info ({len(mi_data)})</button>
+            <button class="pill-btn" onclick="filterGalleryCards('dist')">🎯 Phân bố Lớp & Tần suất ({len(dist_data)})</button>
             <button class="pill-btn" onclick="filterGalleryCards('conv')">📈 Đường cong Hội tụ GA / PSO ({len(conv_data)})</button>
-            <button class="pill-btn" onclick="filterGalleryCards('cicids2017')">🌐 EDA CICIDS2017 ({len(eda_cicids_data)})</button>
-            <button class="pill-btn" onclick="filterGalleryCards('cicddos2019')">⚡ EDA CICDDoS2019 ({len(eda_cicddos_data)})</button>
-            <button class="pill-btn" onclick="filterGalleryCards('unsw')">🛡️ EDA UNSW-NB15 ({len(eda_unsw_data)})</button>
         </div>
 
-        <!-- 1. CONVERGENCE -->
+        <!-- 1. PCA 2D -->
+        <div class="card g-sec g-sec-pca">
+            <div class="card-header">
+                <span>1. SO SÁNH ĐỘ PHÂN TÁCH KHÔNG GIAN PCA 2D (3 BỘ DỮ LIỆU ĐỐI ĐẦU)</span>
+                <span class="badge-tag" style="background: #e0f2fe; color: #0369a1;">Cross-Dataset PCA Projection</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Chiếu giảm chiều từ không gian $D$ đặc trưng xuống 2 thành phần chính ($PC_1, PC_2$). Trực quan hóa độ phân tách giữa cụm Benign và Attack — <strong>Lý giải khoa học:</strong> Tại sao CICDDoS2019 đạt F1 > 99% (cụm DDoS tách biệt hoàn toàn), trong khi UNSW-NB15 chỉ đạt F1 ~ 86% (các kỹ thuật tấn công tinh vi chồng lấn nặng nề lên lưu lượng thường).</p>
+            {render_gallery_grid(pca_data, "🌌", 3)}
+        </div>
+
+        <!-- 2. CORRELATION HEATMAP -->
+        <div class="card g-sec g-sec-heatmap">
+            <div class="card-header">
+                <span>2. SO SÁNH MA TRẬN TƯƠNG QUAN ĐẶC TRƯNG — MỨC ĐỘ DƯ THỪA DỮ LIỆU (3 BỘ DỮ LIỆU ĐỐI ĐẦU)</span>
+                <span class="badge-tag" style="background: #e0f2fe; color: #0369a1;">Correlation Matrix Heatmap</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Đo lường mức độ tương quan tuyến tính giữa tất cả các cặp đặc trưng. Hệ số tương quan cao (|r| &ge; 0.9) thể hiện sự dư thừa dữ liệu nghiêm trọng &mdash; đây là cơ sở thực nghiệm thuyết phục để loại bỏ tới 80&ndash;95% số chiều mà không làm tổn hao thông tin quan trọng.</p>
+            {render_gallery_grid(heatmap_data, "🔥", 3)}
+        </div>
+
+        <!-- 3. MUTUAL INFORMATION -->
+        <div class="card g-sec g-sec-mi">
+            <div class="card-header">
+                <span>3. SO SÁNH XẾP HẠNG THÔNG TIN HỖ TƯƠNG MUTUAL INFORMATION (3 BỘ DỮ LIỆU ĐỐI ĐẦU)</span>
+                <span class="badge-tag" style="background: #e0f2fe; color: #0369a1;">Information Gain Ranking</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Đo lường sự phụ thuộc phi tuyến giữa từng đặc trưng và nhãn lớp tấn công. Giúp phát hiện các thuộc tính chi phối quyết định (như <code>Destination Port</code> trên CICDDoS2019) so với các bộ dữ liệu có thông tin phân bố đều (CICIDS2017, UNSW-NB15).</p>
+            {render_gallery_grid(mi_data, "📊", 3)}
+        </div>
+
+        <!-- 4. CLASS DISTRIBUTION -->
+        <div class="card g-sec g-sec-dist">
+            <div class="card-header">
+                <span>4. SO SÁNH PHÂN BỐ LƯU LƯỢNG & MỨC ĐỘ MẤT CÂN BẰNG NHÃN (3 BỘ DỮ LIỆU ĐỐI ĐẦU)</span>
+                <span class="badge-tag" style="background: #e0f2fe; color: #0369a1;">Class Distribution & Imbalance</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Khảo sát mức độ mất cân bằng giữa lưu lượng lành tính và các lớp tấn công. Làm sáng tỏ lý do bắt buộc phải dùng Stratified Sampling và đánh giá bằng F1-Macro / Recall thay vì chỉ nhìn vào Accuracy đơn thuần.</p>
+            {render_gallery_grid(dist_data, "🎯", 3)}
+        </div>
+
+        <!-- 5. CONVERGENCE -->
         <div class="card g-sec g-sec-conv">
             <div class="card-header">
-                <span>1. TIẾN TRÌNH HỘI TỤ TỐI ƯU HÓA CỦA THUẬT TOÁN GA & PSO (8 BIỂU ĐỒ)</span>
+                <span>5. TIẾN TRÌNH HỘI TỤ TỐI ƯU HÓA CỦA THUẬT TOÁN GA & PSO (8 BIỂU ĐỒ)</span>
                 <span class="badge-tag" style="background: #e0f2fe; color: #0369a1;">Fitness Evolution</span>
             </div>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Biểu đồ tiến hóa hàm thích nghi (Fitness) qua từng thế hệ/vòng lặp của thuật toán Di truyền (GA) và Bầy đàn hạt (PSO). Thể hiện khả năng cân bằng giữa tối đa hóa F1-Score và cực tiểu hóa số chiều đặc trưng.</p>
-            {render_gallery_grid(conv_data, "📈")}
-        </div>
-
-        <!-- 2. CICIDS2017 EDA -->
-        <div class="card g-sec g-sec-cicids2017">
-            <div class="card-header">
-                <span>2. KHÁM PHÁ DỮ LIỆU & TƯƠNG QUAN ĐẶC TRƯNG — BỘ DỮ LIỆU CICIDS2017 (4 BIỂU ĐỒ)</span>
-                <span class="badge-tag" style="background: #e0f2fe; color: #0369a1;">52 Features &bull; 7 Classes</span>
-            </div>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Đánh giá cấu trúc phân phối, mức độ tương quan tuyến tính giữa các thuộc tính lưu lượng mạng hiện đại và mức độ phân tách không gian PCA 2D của CICIDS2017.</p>
-            {render_gallery_grid(eda_cicids_data, "🔍")}
-        </div>
-
-        <!-- 3. CICDDOS2019 EDA -->
-        <div class="card g-sec g-sec-cicddos2019">
-            <div class="card-header">
-                <span>3. KHÁM PHÁ DỮ LIỆU & TƯƠNG QUAN ĐẶC TRƯNG — BỘ DỮ LIỆU CICDDOS2019 (4 BIỂU ĐỒ)</span>
-                <span class="badge-tag" style="background: #fef3c7; color: #92400e;">67 Features &bull; DDoS Scenarios</span>
-            </div>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Phân tích các biến thể tấn công DDoS và sự chi phối thông tin của các thuộc tính cổng dịch vụ (Destination Port, URG Flag Count). Đã loại bỏ Inbound artifact gây rò rỉ nhãn.</p>
-            {render_gallery_grid(eda_cicddos_data, "🔍")}
-        </div>
-
-        <!-- 4. UNSW-NB15 EDA -->
-        <div class="card g-sec g-sec-unsw">
-            <div class="card-header">
-                <span>4. KHÁM PHÁ DỮ LIỆU & TƯƠNG QUAN ĐẶC TRƯNG — BỘ DỮ LIỆU UNSW-NB15 (4 BIỂU ĐỒ)</span>
-                <span class="badge-tag" style="background: #f3e8ff; color: #7e22ce;">42 Features &bull; 10 Classes</span>
-            </div>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Đặc trưng lưu lượng mạng thực tế với 10 lớp tấn công tinh vi (Exploits, Fuzzers, Reconnaissance) có độ chồng lấn không gian rất cao so với lưu lượng bình thường.</p>
-            {render_gallery_grid(eda_unsw_data, "🔍")}
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Biểu đồ tiến hóa hàm thích nghi (Fitness = F1 &minus; &alpha; &times; k/D) qua từng thế hệ của GA và PSO. Chứng minh khả năng hội tụ nhanh chóng (10&ndash;15 thế hệ) và điểm cân bằng Pareto tối ưu giữa độ chính xác và số lượng đặc trưng.</p>
+            {render_gallery_grid(conv_data, "📈", 4)}
         </div>
     </div>
 
