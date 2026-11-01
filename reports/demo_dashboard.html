@@ -113,6 +113,72 @@
         .clf-rf { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
         .clf-dt { background: #f1f5f9; color: #475569; }
 
+        /* TAB EXECUTIVE SUMMARY */
+        .tab-summary-panel {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 22px;
+            box-shadow: 0 4px 12px -2px rgba(0,0,0,0.04);
+            border-left: 5px solid var(--primary);
+        }
+        .tab-summary-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+        .tab-summary-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .summary-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 15px;
+        }
+        .summary-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px 18px;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+        }
+        .summary-box:hover {
+            border-color: #cbd5e1;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px -3px rgba(0,0,0,0.05);
+        }
+        .summary-box-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        .summary-box-title {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+        }
+        .summary-box-desc {
+            font-size: 12.5px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        .summary-box-desc strong {
+            color: var(--text-dark);
+        }
+
         /* GALLERY */
         .gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 18px; }
         .gallery-grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px; }
@@ -226,6 +292,36 @@
 
     <!-- ==================== TAB 2: BINARY EXPERIMENTS ==================== -->
     <div id="tab-binary" class="tab-pane">
+        <!-- EXECUTIVE SUMMARY TAB 2 -->
+        <div class="tab-summary-panel">
+            <div class="tab-summary-header">
+                <span class="tab-summary-title">💡 TỔNG QUAN MỤC TIÊU & PHÁT HIỆN CHÍNH — THỰC NGHIỆM PHÂN LOẠI NHỊ PHÂN</span>
+                <span class="badge-tag" style="background: #e0f2fe; color: #0369a1;">4 Bộ Dữ Liệu &bull; 41 Lượt Thử Nghiệm</span>
+            </div>
+            <div class="summary-cards-grid">
+                <div class="summary-box">
+                    <div class="summary-box-icon">🎯</div>
+                    <div class="summary-box-title">Mục Tiêu Tab Này</div>
+                    <div class="summary-box-desc">Đánh giá năng lực <strong>tinh lọc chiều dữ liệu tối đa</strong> mà vẫn bảo toàn độ nhạy phát hiện xâm nhập nhị phân (phân biệt giữa lưu lượng sạch Benign và tấn công bất kỳ).</div>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-box-icon">🔍</div>
+                    <div class="summary-box-title">Trọng Tâm Cần Quan Sát</div>
+                    <div class="summary-box-desc">So sánh cột <strong>Số ĐT (k)</strong> và <strong>Tỷ lệ giảm (%)</strong> đối chiếu với <strong>F1-Macro</strong> để tìm điểm cân bằng Pareto giữa độ phức tạp mô hình và hiệu năng.</div>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-box-icon">🚀</div>
+                    <div class="summary-box-title">Phát Hiện Cốt Lõi (Key Finding)</div>
+                    <div class="summary-box-desc"><strong>Hybrid 1 (Filter + GA/PSO v2)</strong> đạt kỷ lục giảm chiều: CICDDoS2019 giảm <strong>95.5%</strong> (67 &rarr; 3 ĐT, F1: 99.33%), CICIDS2017 giảm <strong>88.5%</strong> (52 &rarr; 6 ĐT, F1: 99.59%).</div>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-box-icon">⚡</div>
+                    <div class="summary-box-title">Giá Trị Thực Tiễn NIDS</div>
+                    <div class="summary-box-desc">Rút ngắn thời gian huấn luyện <strong>28 &ndash; 50 lần</strong> và giảm độ trễ suy luận, đáp ứng hoàn hảo yêu cầu giám sát gói tin lưu lượng mạng thời gian thực.</div>
+                </div>
+            </div>
+        </div>
+
         <!-- SUB PILLS -->
         <div class="sub-pills-bar">
             <span class="sub-pill-label">Lọc theo Dataset:</span>
@@ -815,6 +911,36 @@
 
     <!-- ==================== TAB 3: MULTI-CLASS EXPERIMENTS ==================== -->
     <div id="tab-multiclass" class="tab-pane">
+        <!-- EXECUTIVE SUMMARY TAB 3 -->
+        <div class="tab-summary-panel">
+            <div class="tab-summary-header">
+                <span class="tab-summary-title">💡 TỔNG QUAN MỤC TIÊU & PHÁT HIỆN CHÍNH — PHÂN LOẠI ĐA LỚP TẤN CÔNG (MULTI-CLASS NIDS)</span>
+                <span class="badge-tag" style="background: #f3e8ff; color: #7e22ce;">3 Bộ Dữ Liệu &bull; 18 Lượt Thử Nghiệm</span>
+            </div>
+            <div class="summary-cards-grid">
+                <div class="summary-box">
+                    <div class="summary-box-icon">🎯</div>
+                    <div class="summary-box-title">Mục Tiêu Tab Này</div>
+                    <div class="summary-box-desc">Thử thách thuật toán trên bài toán thực tế: <strong>nhận diện chính xác từng biến thể tấn công cụ thể</strong> (DDoS, DoS, Brute Force, Web, Botnet, Exploits, Fuzzers,...).</div>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-box-icon">🔍</div>
+                    <div class="summary-box-title">Trọng Tâm Cần Quan Sát</div>
+                    <div class="summary-box-desc">Đặc biệt lưu ý cột <strong>F1-Macro Đa Lớp</strong> — thước đo vàng phản ánh khả năng phát hiện các lớp tấn công hiểm hóc có tần suất cực hiếm bị mất cân bằng dữ liệu.</div>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-box-icon">🏆</div>
+                    <div class="summary-box-title">Phát Hiện Đột Phá (Breakthrough)</div>
+                    <div class="summary-box-desc">Trên UNSW-NB15, <strong>Hybrid 1 GA đạt F1-macro 55.50%</strong> (với chỉ 6 ĐT), <strong>vượt xa Baseline 42 ĐT (48.96%)</strong> nhờ loại bỏ các thuộc tính gây nhiễu phân loại.</div>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-box-icon">🛡️</div>
+                    <div class="summary-box-title">Ý Nghĩa An Ninh Mạng</div>
+                    <div class="summary-box-desc">Chứng minh chọn lọc đặc trưng tối ưu không chỉ làm nhẹ mô hình, mà còn <strong>làm sắc nét ranh giới quyết định</strong> giữa các kỹ thuật tấn công tinh vi.</div>
+                </div>
+            </div>
+        </div>
+
         <!-- SUB PILLS -->
         <div class="sub-pills-bar">
             <span class="sub-pill-label">Lọc theo Dataset Đa lớp:</span>
@@ -1135,6 +1261,36 @@
 
     <!-- ==================== TAB 4: ADVANCED EVALUATION ==================== -->
     <div id="tab-advanced" class="tab-pane">
+        <!-- EXECUTIVE SUMMARY TAB 4 -->
+        <div class="tab-summary-panel">
+            <div class="tab-summary-header">
+                <span class="tab-summary-title">💡 TỔNG QUAN MỤC TIÊU & PHÁT HIỆN CHÍNH — KHẢ NĂNG KHÁI QUÁT HÓA & BÓC TÁCH ĐẶC TRƯNG</span>
+                <span class="badge-tag" style="background: #fef3c7; color: #92400e;">Cross-Classifiers &bull; Feature Ablation</span>
+            </div>
+            <div class="summary-cards-grid">
+                <div class="summary-box">
+                    <div class="summary-box-icon">🎯</div>
+                    <div class="summary-box-title">Mục Tiêu Tab Này</div>
+                    <div class="summary-box-desc">Kiểm chứng <strong>tính bền vững của tập đặc trưng</strong> khi chuyển đổi sang các bộ phân loại ensemble mạnh hơn (RF, XGBoost) và phân tích độ phụ thuộc vào từng thuộc tính trọng yếu.</div>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-box-icon">🔍</div>
+                    <div class="summary-box-title">Trọng Tâm Cần Quan Sát</div>
+                    <div class="summary-box-desc"><strong>Bảng 1:</strong> So sánh chéo DT vs RF vs XGBoost. <strong>Bảng 2:</strong> Xem mức độ sụt giảm hiệu năng khi bóc tách (loại bỏ) <code>Destination Port</code> và <code>URG Flag Count</code>.</div>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-box-icon">📊</div>
+                    <div class="summary-box-title">Phát Hiện Cốt Lõi (Cross-Classifier)</div>
+                    <div class="summary-box-desc">Tập đặc trưng tối ưu giữ vững hoặc tăng hiệu năng khi sang <strong>XGBoost (F1 đạt 99.85% trên CICIDS2017)</strong> và <strong>Random Forest (99.70% trên CICDDoS2019)</strong>.</div>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-box-icon">⚠️</div>
+                    <div class="summary-box-title">Cảnh Báo Từ Ablation Study</div>
+                    <div class="summary-box-desc">Khi bỏ cả 2 thuộc tính Port & Flag trên CICDDoS2019, <strong>F1 sụt giảm nghiêm trọng 15% &ndash; 19%</strong>, chứng minh các thuộc tính này giữ vai trò "huyết mạch" trong phân loại DDoS.</div>
+                </div>
+            </div>
+        </div>
+
         <!-- Cross-classifier -->
         <div class="card">
             <div class="card-header">
@@ -1347,6 +1503,36 @@
 
     <!-- ==================== TAB 5: GALLERY (CROSS-DATASET COMPARISON) ==================== -->
     <div id="tab-gallery" class="tab-pane">
+        <!-- EXECUTIVE SUMMARY TAB 5 -->
+        <div class="tab-summary-panel">
+            <div class="tab-summary-header">
+                <span class="tab-summary-title">💡 TỔNG QUAN MỤC TIÊU & PHÁT HIỆN CHÍNH — ĐỐI CHIẾU TRỰC QUAN HÓA & KHÁM PHÁ DỮ LIỆU</span>
+                <span class="badge-tag" style="background: #e0f2fe; color: #0369a1;">20 Biểu Đồ Độ Nét Cao &bull; Đối Đầu Chéo</span>
+            </div>
+            <div class="summary-cards-grid">
+                <div class="summary-box">
+                    <div class="summary-box-icon">🎯</div>
+                    <div class="summary-box-title">Mục Tiêu Tab Này</div>
+                    <div class="summary-box-desc">Cung cấp <strong>bằng chứng trực quan đối chiếu chéo (Cross-Dataset)</strong> giữa các bộ dữ liệu nhằm giải thích bản chất toán học đằng sau các kết quả phân loại học máy.</div>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-box-icon">🔍</div>
+                    <div class="summary-box-title">Trọng Tâm Cần Quan Sát</div>
+                    <div class="summary-box-desc">Xem đối đầu 3 biểu đồ <strong>PCA 2D</strong> để thấy ranh giới cụm, <strong>Heatmap</strong> để thấy tính dư thừa, <strong>Mutual Info</strong> để thấy phân bổ thông tin, và <strong>Đường cong hội tụ</strong> của GA/PSO.</div>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-box-icon">🌌</div>
+                    <div class="summary-box-title">Insight Về Không Gian Dữ Liệu</div>
+                    <div class="summary-box-desc">PCA 2D lý giải hoàn hảo: CICDDoS2019 tách biệt rõ nét (F1 &gt; 99%), trong khi UNSW-NB15 các cụm tấn công tinh vi chồng lấn dày đặc lên lưu lượng thường (F1 ~ 86%).</div>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-box-icon">📈</div>
+                    <div class="summary-box-title">Insight Về Metaheuristics</div>
+                    <div class="summary-box-desc">Đường cong hội tụ chứng minh <strong>PSO v2 và Hybrid GA</strong> đạt điểm hội tụ ổn định chỉ sau 10 &ndash; 15 thế hệ, cơ chế tái tạo Reset giải quyết triệt để hiện tượng hội tụ sớm.</div>
+                </div>
+            </div>
+        </div>
+
         <!-- SUB PILLS BAR -->
         <div class="sub-pills-bar">
             <span class="sub-pill-label">So sánh Đối đầu:</span>
