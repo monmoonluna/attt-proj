@@ -158,6 +158,27 @@ def generate_dashboard():
     img_arch = encode_img_base64(os.path.join(ROOT_DIR, "docs", "assets", "quy-trinh-nids.png"))
     img_hybrid = encode_img_base64(os.path.join(ROOT_DIR, "docs", "assets", "co-che-hybrid-paper.png"))
 
+    fig_paper_dir = os.path.join(ROOT_DIR, "docs", "assets", "paper_figures")
+    img_fig3_1 = encode_img_base64(os.path.join(fig_paper_dir, "hinh-3-1-phan-bo-nhan-nhi-phan.png"))
+    img_fig3_2 = encode_img_base64(os.path.join(fig_paper_dir, "hinh-3-2-f1-cicids2017-binary.png"))
+    img_fig3_3 = encode_img_base64(os.path.join(fig_paper_dir, "hinh-3-3-duong-hoi-tu-pso.png"))
+    img_fig3_4 = encode_img_base64(os.path.join(fig_paper_dir, "hinh-3-4-f1-unsw-binary.png"))
+    img_fig3_5 = encode_img_base64(os.path.join(fig_paper_dir, "hinh-3-5-f1-cicddos2019-binary.png"))
+    img_fig3_6 = encode_img_base64(os.path.join(fig_paper_dir, "hinh-3-6-f1-multiclass-cic-unsw.png"))
+    img_fig3_7 = encode_img_base64(os.path.join(fig_paper_dir, "hinh-3-7-f1-ba-bo-phan-loai-ddos.png"))
+    img_fig3_8 = encode_img_base64(os.path.join(fig_paper_dir, "hinh-3-8-ablation-dest-port-urg.png"))
+
+    paper_fig_data = [
+        ("Hình 3.1: Phân Bố Nhãn Nhị Phân 3 Bộ Dữ Liệu", os.path.join(fig_paper_dir, "hinh-3-1-phan-bo-nhan-nhi-phan.png"), "EDA & Nhãn", "So sánh tỷ lệ Benign vs Attack giữa CICIDS2017, CICDDoS2019 và UNSW-NB15."),
+        ("Hình 3.2: So Sánh F1-Macro Trên CICIDS2017", os.path.join(fig_paper_dir, "hinh-3-2-f1-cicids2017-binary.png"), "CICIDS2017 Nhị phân", "Hybrid 1 GA v2 đạt 99.59% F1 chỉ với 6 đặc trưng so với Baseline 52 ĐT."),
+        ("Hình 3.3: Đường Hội Tụ PSO v2 vs Chuẩn", os.path.join(fig_paper_dir, "hinh-3-3-duong-hoi-tu-pso.png"), "Động học PSO", "Khắc phục kẹt hội tụ sớm, tăng fitness và giảm đặc trưng từ 22 xuống 14."),
+        ("Hình 3.4: So Sánh F1-Macro Trên UNSW-NB15", os.path.join(fig_paper_dir, "hinh-3-4-f1-unsw-binary.png"), "UNSW-NB15 Nhị phân", "Chỉ với 3 đặc trưng vẫn giữ vững 86.32% F1 trên dữ liệu phức tạp."),
+        ("Hình 3.5: So Sánh F1-Macro Trên CICDDoS2019", os.path.join(fig_paper_dir, "hinh-3-5-f1-cicddos2019-binary.png"), "CICDDoS2019 Nhị phân", "Loại bỏ Inbound artifact, Hybrid 1 GA v2 đạt 99.33% vượt cả mốc Baseline."),
+        ("Hình 3.6: F1-Macro Đa Lớp CICIDS2017 & UNSW-NB15", os.path.join(fig_paper_dir, "hinh-3-6-f1-multiclass-cic-unsw.png"), "Đa lớp", "Hybrid 1 vượt trội trên UNSW (+6.54% F1) và duy trì 95.57% trên CICIDS2017."),
+        ("Hình 3.7: So Sánh 3 Bộ Phân Loại Trên CICDDoS2019", os.path.join(fig_paper_dir, "hinh-3-7-f1-ba-bo-phan-loai-ddos.png"), "Đa mô hình", "Kiểm định DT, RF, XGBoost trên các tập đặc trưng rút gọn."),
+        ("Hình 3.8: Ablation Study Port & Flag Trên CICDDoS2019", os.path.join(fig_paper_dir, "hinh-3-8-ablation-dest-port-urg.png"), "Bóc tách", "Mức độ suy giảm F1 khi loại bỏ Destination Port (-15.18%) và URG Flag.")
+    ]
+
     # 1. PCA 2D: Cross-dataset comparison
     pca_data = [
         ("CICIDS2017: Chiếu Không Gian PCA 2D (52 Đặc Trưng)", os.path.join(ROOT_DIR, "eda_output", "CICIDS2017", "pca_scatter.png"), "CICIDS2017", "Các cụm tấn công DoS, Brute Force tách biệt tương đối tốt so với lưu lượng Benign."),
@@ -198,7 +219,7 @@ def generate_dashboard():
         ("UNSW-NB15 Multi: Hybrid 1 GA Hội Tụ (10 Lớp)", os.path.join(OUTPUT_DIR, "UNSW_multi", "fs_hybrid1_ga", "convergence.png"), "GA Đa lớp", "Chỉ với 6 đặc trưng đạt F1-macro 55.50%, vượt qua mốc Baseline 42 ĐT.")
     ]
 
-    total_gallery_count = len(pca_data) + len(heatmap_data) + len(mi_data) + len(dist_data) + len(conv_data)
+    total_gallery_count = len(pca_data) + len(heatmap_data) + len(mi_data) + len(dist_data) + len(conv_data) + len(paper_fig_data)
 
     def render_gallery_grid(items, cols=3):
         grid_class = "gallery-grid" if cols != 3 else "gallery-grid gallery-grid-3"
@@ -507,6 +528,61 @@ def generate_dashboard():
             padding: 2px 8px;
             border-radius: 4px;
             border: 1px solid var(--border-light);
+        }}
+
+        /* FIGURE EMBEDDING IN CARDS (HUMAN-CRAFTED ACADEMIC STYLE) */
+        .card-figure-section {{
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px dashed var(--border-medium);
+        }}
+        .card-figure-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 18px;
+            align-items: start;
+        }}
+        .figure-item {{
+            background: #f8fafc;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 14px;
+            text-align: center;
+        }}
+        .figure-item img {{
+            width: 100%;
+            max-width: 820px;
+            border-radius: 6px;
+            border: 1px solid var(--border-light);
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            background: #ffffff;
+        }}
+        .figure-item img:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }}
+        .figure-caption {{
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-top: 10px;
+            margin-bottom: 4px;
+            text-align: left;
+        }}
+        .figure-desc {{
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.45;
+            text-align: left;
+        }}
+        .figure-hint {{
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 6px;
+            font-style: italic;
+            text-align: right;
         }}
 
         /* SCIENTIFIC DATA TABLES */
@@ -896,6 +972,25 @@ def generate_dashboard():
                 </div>
             </div>
         </div>
+
+        <!-- CARD 3: CLASS DISTRIBUTION ACROSS DATASETS (HÌNH 3.1 TRONG BÁO CÁO) -->
+        <div class="card" style="margin-top: 22px;">
+            <div class="card-header">
+                <span>3. PHÂN BỐ NHÃN NHỊ PHÂN CỦA BA BỘ DỮ LIỆU NGHIÊN CỨU (CICIDS2017, CICDDOS2019, UNSW-NB15)</span>
+                <span class="badge-tag" style="background: #e0f2fe; color: #0369a1;">Hình 3.1 trong Báo cáo Word</span>
+            </div>
+            <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 12px;">
+                Tỷ lệ phân bố giữa lưu lượng bình thường (Benign / Normal) và lưu lượng tấn công (Attack) trên ba bộ dữ liệu thực nghiệm, phản ánh tính chất mất cân bằng nhãn trong môi trường mạng thực tế (Mục 3.1.2 trong Báo cáo).
+            </p>
+            <div style="text-align: center; padding: 10px 0;">
+                <img src="{img_fig3_1}" style="max-width: 820px; width: 100%; border-radius: 8px; border: 1px solid var(--border-light); cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.06); background: #ffffff;" onclick="openModal(this.src)" alt="Hình 3.1: Phân bố nhãn nhị phân của ba bộ dữ liệu">
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px; font-style: italic;">(Nhấp vào biểu đồ để phóng to toàn màn hình)</p>
+            </div>
+            <div class="figure-caption" style="margin-top: 14px;"><strong>Hình 3.1:</strong> Phân bố nhãn nhị phân của ba bộ dữ liệu (Benign vs Attack)</div>
+            <p class="figure-desc">
+                CICIDS2017 có tỷ lệ Benign chiếm áp đảo 80.30% (mất cân bằng tự nhiên). Ngược lại, CICDDoS2019 thể hiện lưu lượng tấn công chiếm ưu thế 79.36% do kịch bản ngập lụt mạng. UNSW-NB15 có tỷ lệ Normal 68.06% và Attack 31.94%, phản ánh lưu lượng mạng hỗn hợp đa nguồn hiện đại.
+            </p>
+        </div>
     </div><!-- ==================== TAB 2: BINARY EXPERIMENTS ==================== -->
     <div id="tab-binary" class="tab-pane">
         <!-- EXECUTIVE SUMMARY TAB 2 -->
@@ -1000,6 +1095,26 @@ def generate_dashboard():
                     </tbody>
                 </table>
             </div>
+            <div class="card-figure-section">
+                <div class="card-figure-grid">
+                    <div class="figure-item">
+                        <img src="{img_fig3_2}" onclick="openModal(this.src)" alt="Hình 3.2: F1-macro của các phương án trên CICIDS2017">
+                        <div class="figure-caption">Hình 3.2: So sánh F1-macro các phương án trên CICIDS2017 (Decision Tree)</div>
+                        <div class="figure-desc">
+                            Hybrid 1 GA v2 đạt F1-macro 99.59% chỉ với 6 đặc trưng (loại bỏ 88.5% số chiều), bám sát mức Baseline 99.80% (52 đặc trưng) và cao hơn Filter-MI đơn lẻ (99.20%).
+                        </div>
+                        <div class="figure-hint">Nhấp để phóng to</div>
+                    </div>
+                    <div class="figure-item">
+                        <img src="{img_fig3_3}" onclick="openModal(this.src)" alt="Hình 3.3: Đường hội tụ của PSO trước và sau khi khắc phục hội tụ sớm">
+                        <div class="figure-caption">Hình 3.3: Đường hội tụ PSO trước và sau khi khắc phục hội tụ sớm (CICIDS2017)</div>
+                        <div class="figure-desc">
+                            PSO tiêu chuẩn bị kẹt cực tiểu địa phương ngay vòng 1 (fitness 0.84381 không đổi suốt 30 vòng, 22 ĐT). Sau cải tiến đột biến định kỳ &amp; tái khởi tạo, fitness tăng lên 0.84962 và số đặc trưng giảm xuống 14.
+                        </div>
+                        <div class="figure-hint">Nhấp để phóng to</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- CICDDoS2019 Binary -->
@@ -1018,6 +1133,16 @@ def generate_dashboard():
                     </tbody>
                 </table>
             </div>
+            <div class="card-figure-section">
+                <div class="figure-item" style="max-width: 820px; margin: 0 auto;">
+                    <img src="{img_fig3_5}" onclick="openModal(this.src)" alt="Hình 3.5: F1-macro của các phương án trên CICDDoS2019">
+                    <div class="figure-caption">Hình 3.5: So sánh F1-macro các phương án trên CICDDoS2019 (Decision Tree)</div>
+                    <div class="figure-desc">
+                        Sau khi loại bỏ thuộc tính rò rỉ dữ liệu (Inbound artifact), Hybrid 1 GA v2 chỉ cần 3 đặc trưng cốt lõi (Destination Port, URG Flag Count, Min Packet Length) vẫn đạt F1-macro 99.33%, thậm chí vượt qua cả Baseline 67 đặc trưng (99.08%) nhờ loại bỏ nhiễu đa cộng tuyến.
+                    </div>
+                    <div class="figure-hint">Nhấp để phóng to</div>
+                </div>
+            </div>
         </div>
 
         <!-- UNSW-NB15 Binary -->
@@ -1035,6 +1160,16 @@ def generate_dashboard():
                         {render_table_rows(res_unsw_bin, 42)}
                     </tbody>
                 </table>
+            </div>
+            <div class="card-figure-section">
+                <div class="figure-item" style="max-width: 820px; margin: 0 auto;">
+                    <img src="{img_fig3_4}" onclick="openModal(this.src)" alt="Hình 3.4: F1-macro của các phương án trên UNSW-NB15">
+                    <div class="figure-caption">Hình 3.4: So sánh F1-macro các phương án trên UNSW-NB15 (Decision Tree)</div>
+                    <div class="figure-desc">
+                        Trên dữ liệu lưu lượng thực tế UNSW-NB15 có độ chồng lấn cao, Hybrid 1 GA v2 rút gọn từ 42 xuống còn đúng 3 đặc trưng (sbytes, sttl, ct_state_ttl) mà vẫn duy trì F1-macro 86.32% (ngang ngửa Baseline 86.36%), đồng thời tăng tốc huấn luyện 28 lần.
+                    </div>
+                    <div class="figure-hint">Nhấp để phóng to</div>
+                </div>
             </div>
         </div>
 
@@ -1125,6 +1260,26 @@ def generate_dashboard():
             <div class="exec-guide-note">
                 <span><strong>Ghi chú:</strong> F1-Macro là chỉ số đánh giá chính để phản ánh công bằng trên các lớp tấn công thiểu số. Bấm thanh lọc bên dưới để xem chi tiết ma trận nhầm lẫn.</span>
             </div>
+        </div>
+
+        <!-- VISUAL COMPARISON CARD (HÌNH 3.6 TRONG BÁO CÁO) -->
+        <div class="card">
+            <div class="card-header">
+                <span>ĐỐI CHIẾU TRỰC QUAN F1-MACRO PHÂN LOẠI ĐA LỚP: CICIDS2017 (15 LỚP) vs UNSW-NB15 (10 LỚP)</span>
+                <span class="badge-tag" style="background: #e0f2fe; color: #0369a1;">Hình 3.6 trong Báo cáo Word</span>
+            </div>
+            <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 12px;">
+                Biểu đồ cột đối chiếu F1-macro đa lớp giữa các phương án chọn đặc trưng trên hai môi trường mạng có phân bố nhãn bị mất cân bằng cực đoan (Mục 3.3 trong Báo cáo).
+            </p>
+            <div style="text-align: center; padding: 6px 0;">
+                <img src="{img_fig3_6}" style="max-width: 880px; width: 100%; border-radius: 8px; border: 1px solid var(--border-light); cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.06); background: #ffffff;" onclick="openModal(this.src)" alt="Hình 3.6: F1-macro đa lớp trên CICIDS2017 và UNSW-NB15">
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px; font-style: italic;">(Nhấp vào biểu đồ để phóng to toàn màn hình)</p>
+            </div>
+            <div class="figure-caption" style="margin-top: 14px;"><strong>Hình 3.6:</strong> So sánh F1-macro phân loại đa lớp trên CICIDS2017 và UNSW-NB15 (Decision Tree)</div>
+            <p class="figure-desc">
+                <strong>(1) Trên CICIDS2017:</strong> Hybrid 1 GA đạt F1-macro 95.57% chỉ với 10 đặc trưng, bám sát mức Baseline 95.83% (52 đặc trưng) và cao hơn Filter-MI (94.88%).<br>
+                <strong>(2) Trên UNSW-NB15:</strong> Hybrid 1 GA đạt 55.50% với chỉ 6 đặc trưng, <strong>vượt trội hoàn toàn mốc Baseline 48.96% (+6.54% F1)</strong>. Việc loại bỏ các đặc trưng gây nhiễu giúp cây quyết định phân biệt chính xác hơn các lớp tấn công hiếm (Worms, Analysis, Backdoors).
+            </p>
         </div><!-- SUB PILLS -->
         <div class="filter-toolbar">
             <span class="filter-label">Lọc theo Dataset Đa lớp:</span>
@@ -1309,6 +1464,16 @@ def generate_dashboard():
                     </tbody>
                 </table>
             </div>
+            <div class="card-figure-section">
+                <div class="figure-item" style="max-width: 820px; margin: 0 auto;">
+                    <img src="{img_fig3_7}" onclick="openModal(this.src)" alt="Hình 3.7: F1-macro của ba bộ phân loại trên CICDDoS2019">
+                    <div class="figure-caption">Hình 3.7: So sánh F1-macro của ba bộ phân loại (Decision Tree, Random Forest, XGBoost) trên CICDDoS2019</div>
+                    <div class="figure-desc">
+                        Đối chiếu độ nhạy trên các tập đặc trưng rút gọn (Full 67 ĐT, Filter 20 ĐT, GA 16 ĐT, Hybrid 1 12 ĐT). Cả ba bộ phân loại đều đạt F1 trên 99.6% khi sử dụng tập đặc trưng chọn lọc của Hybrid 1, chứng minh các thuộc tính được chọn có tính khái quát hóa độc lập với kiến trúc phân loại (Model-Agnostic).
+                    </div>
+                    <div class="figure-hint">Nhấp để phóng to</div>
+                </div>
+            </div>
         </div>
 
         <!-- Ablation Study -->
@@ -1346,6 +1511,16 @@ def generate_dashboard():
     html_content += f"""
                     </tbody>
                 </table>
+            </div>
+            <div class="card-figure-section">
+                <div class="figure-item" style="max-width: 820px; margin: 0 auto;">
+                    <img src="{img_fig3_8}" onclick="openModal(this.src)" alt="Hình 3.8: Ablation Destination Port và URG Flag Count trên CICDDoS2019">
+                    <div class="figure-caption">Hình 3.8: Kết quả bóc tách thuộc tính (Ablation Study) của Destination Port và URG Flag Count trên CICDDoS2019</div>
+                    <div class="figure-desc">
+                        Khi loại bỏ Destination Port, F1-macro của Decision Tree sụt giảm từ 99.33% xuống 84.15% (-15.18%). Khi loại bỏ tiếp URG Flag Count, F1 sụt giảm xuống 80.31% (-19.02%). Kết quả thực nghiệm xác nhận Destination Port và cờ điều khiển TCP là hai dấu hiệu then chốt để nhận diện các đợt tấn công từ chối dịch vụ.
+                    </div>
+                    <div class="figure-hint">Nhấp để phóng to</div>
+                </div>
             </div>
         </div>
     </div>
@@ -1424,6 +1599,7 @@ def generate_dashboard():
             <button class="btn-filter" onclick="filterGalleryCards('mi')">3. Xếp hạng Mutual Info ({len(mi_data)})</button>
             <button class="btn-filter" onclick="filterGalleryCards('dist')">4. Phân bố nhãn lớp ({len(dist_data)})</button>
             <button class="btn-filter" onclick="filterGalleryCards('conv')">5. Động học hội tụ GA/PSO ({len(conv_data)})</button>
+            <button class="btn-filter" onclick="filterGalleryCards('paper')">6. Biểu đồ Báo cáo Word ({len(paper_fig_data)})</button>
         </div>
 
         <!-- 1. PCA 2D -->
@@ -1474,6 +1650,16 @@ def generate_dashboard():
             </div>
             <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Biểu đồ tiến hóa hàm thích nghi (Fitness = F1 &minus; &alpha; &times; k/D) qua từng thế hệ của GA và PSO. Chứng minh khả năng hội tụ nhanh chóng (10&ndash;15 thế hệ) và điểm cân bằng Pareto tối ưu giữa độ chính xác và số lượng đặc trưng.</p>
             {render_gallery_grid(conv_data, 4)}
+        </div>
+
+        <!-- 6. PAPER EXPERIMENTAL FIGURES -->
+        <div class="card g-sec g-sec-paper">
+            <div class="card-header">
+                <span>6. CÁC BIỂU ĐỒ BÁO CÁO THỰC NGHIỆM ĐỒ ÁN (HÌNH 3.1 &ndash; HÌNH 3.8)</span>
+                <span class="badge-tag" style="background: #e0f2fe; color: #0369a1;">Trích từ Báo cáo Word</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Toàn bộ 8 biểu đồ phân tích thực nghiệm được trích dẫn trong văn bản Báo cáo Đồ án chuyên ngành, trực quan hóa từ phân bố dữ liệu, F1-macro nhị phân, đa lớp đến phân tích bóc tách và độ nhạy mô hình.</p>
+            {render_gallery_grid(paper_fig_data, 4)}
         </div>
     </div>
 
