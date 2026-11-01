@@ -3,11 +3,11 @@
 scripts/update_dashboard.py
 Refactor giao diện Web Dashboard theo chuẩn UX Học thuật & Báo cáo Khoa học:
 - 5 Tab lớn mạch lạc theo tư duy nghiên cứu:
-  1. 📌 Tổng quan & Quy trình (Overview & Architecture Pipeline)
-  2. 📊 Thực nghiệm Nhị phân (Binary Detection - 4 Datasets với Sub-pills)
-  3. 🌐 Thực nghiệm Đa lớp (Multi-Class - 3 Datasets với Sub-pills)
+  1. Tổng quan & Quy trình (Overview & Architecture Pipeline)
+  2. Thực nghiệm Nhị phân (Binary Detection - 4 Datasets với Sub-pills)
+  3. Thực nghiệm Đa lớp (Multi-Class - 3 Datasets với Sub-pills)
   4. ⚡ Đa Mô hình & Ablation Study (DT vs RF vs XGBoost + Bóc tách đặc trưng)
-  5. 🖼️ Thư viện Biểu đồ & Hội tụ (16 Biểu đồ GA/PSO & EDA độ nét cao)
+  5. Thư viện Biểu đồ & Hội tụ (16 Biểu đồ GA/PSO & EDA độ nét cao)
 - Có Sub-pills chuyển nhanh giữa các bộ dữ liệu mượt mà, không cuộn dài
 - Tự động quét 100% tất cả 63 lượt thực nghiệm định lượng từ output/
 """
@@ -106,12 +106,12 @@ def render_table_rows(results, orig_dim):
         <tr class="{tr_class}">
             <td><strong>{name}</strong></td>
             <td>{clf_badge}</td>
-            <td><strong>{k}</strong></td>
-            <td>{red:.1f}%</td>
-            <td>{acc:.2f}%</td>
-            <td><strong>{f1:.2f}%</strong></td>
-            <td>{t_tr:.2f}s</td>
-            <td>{t_inf:.2f}ms</td>
+            <td class="num-col"><strong>{k}</strong></td>
+            <td class="num-col">{red:.1f}%</td>
+            <td class="num-col">{acc:.2f}%</td>
+            <td class="num-col"><strong>{f1:.2f}%</strong></td>
+            <td class="num-col">{t_tr:.2f}s</td>
+            <td class="num-col">{t_inf:.2f}ms</td>
             <td>{badge}</td>
         </tr>
         """
@@ -200,21 +200,21 @@ def generate_dashboard():
 
     total_gallery_count = len(pca_data) + len(heatmap_data) + len(mi_data) + len(dist_data) + len(conv_data)
 
-    def render_gallery_grid(items, prefix_icon, cols=3):
+    def render_gallery_grid(items, cols=3):
         grid_class = "gallery-grid" if cols != 3 else "gallery-grid gallery-grid-3"
         grid_html = f'<div class="{grid_class}">'
         for title, path, badge, desc in items:
             b64 = encode_img_base64(path)
             if b64:
                 grid_html += f"""
-                <div class="gallery-card" onclick="openModal('{b64}')">
+                <div class="gallery-item" onclick="openModal('{b64}')">
                     <img src="{b64}" alt="{title}">
-                    <div class="gallery-caption">
-                        <div class="gallery-caption-title">
-                            <span>{prefix_icon} {title}</span>
+                    <div class="gallery-meta">
+                        <div class="gallery-meta-title">
+                            <span>{title}</span>
                             <span class="tag-pill tag-proposed">{badge}</span>
                         </div>
-                        <div class="gallery-caption-desc">{desc}</div>
+                        <div class="gallery-meta-desc">{desc}</div>
                     </div>
                 </div>
                 """
@@ -229,300 +229,571 @@ def generate_dashboard():
     <title>NIDS Feature Selection Dashboard — Đề Tài 2.18</title>
     <style>
         :root {{
-            --primary: #1e3a8a;
-            --primary-light: #2563eb;
-            --primary-bg: #eff6ff;
-            --success: #15803d;
-            --success-bg: #f0fdf4;
-            --warning: #b45309;
-            --text-dark: #0f172a;
-            --text-muted: #475569;
-            --bg-light: #f8fafc;
-            --card-border: #cbd5e1;
-            --table-border: #e2e8f0;
-            --table-hover: #f1f5f9;
+            --primary: #1e3a8a;          /* Academic Navy */
+            --primary-hover: #172554;
+            --text-main: #0f172a;        /* Slate-900 */
+            --text-muted: #64748b;       /* Slate-500 */
+            --border-light: #e2e8f0;     /* Slate-200 */
+            --border-medium: #cbd5e1;    /* Slate-300 */
+            --bg-page: #f8fafc;          /* Slate-50 */
+            --bg-card: #ffffff;
+            --success-text: #15803d;     /* Emerald-700 */
+            --success-bg: #f0fdf4;       /* Emerald-50 */
+            --success-border: #bbf7d0;   /* Emerald-200 */
         }}
-        * {{ box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }}
-        body {{ background-color: var(--bg-light); color: var(--text-dark); line-height: 1.6; padding: 25px 30px; }}
-        .container {{ max-width: 1540px; margin: 0 auto; }}
-
-        /* HEADER */
-        header {{
-            background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
-            color: #ffffff;
-            padding: 30px 35px;
-            border-radius: 16px;
-            margin-bottom: 22px;
-            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15);
+        * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+        body {{
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
         }}
-        .header-top {{ display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }}
-        .badge-tag {{ background: rgba(255,255,255,0.18); padding: 5px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }}
-        header h1 {{ font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }}
-        header p {{ font-size: 14.5px; opacity: 0.92; max-width: 1100px; }}
+        .container {{
+            max-width: 1480px;
+            margin: 0 auto;
+            padding: 24px 28px;
+        }}
 
-        /* STATS OVERVIEW */
-        .stats-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 22px; }}
-        .stat-card {{ background: #ffffff; border: 1px solid var(--card-border); padding: 20px 24px; border-radius: 12px; box-shadow: 0 4px 10px -2px rgba(0,0,0,0.03); }}
-        .stat-label {{ font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }}
-        .stat-value {{ font-size: 30px; font-weight: 800; color: var(--primary); margin: 4px 0; }}
-        .stat-desc {{ font-size: 13px; color: var(--text-muted); }}
-
-        /* MAIN TABS */
-        .main-tabs {{ display: flex; gap: 8px; border-bottom: 2px solid var(--card-border); margin-bottom: 20px; }}
-        .tab-btn {{
+        /* TOPBAR & HEADER */
+        .dashboard-header {{
             background: #ffffff;
-            border: 1px solid var(--card-border);
-            border-bottom: none;
-            padding: 13px 24px;
-            font-size: 14.5px;
-            font-weight: 600;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 24px 28px;
+            margin-bottom: 20px;
+        }}
+        .top-meta-bar {{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding-bottom: 12px;
+            margin-bottom: 14px;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 12.5px;
             color: var(--text-muted);
-            cursor: pointer;
-            border-radius: 10px 10px 0 0;
-            transition: all 0.2s;
+        }}
+        .meta-left {{
             display: flex;
             align-items: center;
             gap: 8px;
         }}
-        .tab-btn:hover {{ color: var(--primary); background: #f1f5f9; }}
-        .tab-btn.active {{
-            color: var(--primary);
-            background: #ffffff;
-            border-color: var(--card-border);
-            border-bottom: 3px solid var(--primary);
-            font-weight: 700;
-            margin-bottom: -2px;
-        }}
-        .tab-badge {{ background: #e2e8f0; color: var(--text-dark); padding: 2px 7px; border-radius: 9999px; font-size: 11px; font-weight: 700; }}
-        .tab-btn.active .tab-badge {{ background: var(--primary); color: #ffffff; }}
-
-        /* SUB PILLS (FILTER BAR) */
-        .sub-pills-bar {{ display: flex; align-items: center; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; background: #ffffff; padding: 12px 18px; border-radius: 10px; border: 1px solid var(--card-border); }}
-        .sub-pill-label {{ font-size: 12.5px; font-weight: 700; color: var(--text-muted); margin-right: 6px; text-transform: uppercase; }}
-        .pill-btn {{
+        .meta-tag {{
             background: #f1f5f9;
-            border: 1px solid var(--card-border);
-            padding: 6px 14px;
+            border: 1px solid var(--border-light);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+            color: var(--text-main);
+        }}
+        .meta-right {{
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }}
+        .status-badge {{
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #15803d;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }}
+        .status-dot {{
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #16a34a;
+        }}
+        .header-main h1 {{
+            font-size: 21px;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.3px;
+            margin-bottom: 6px;
+        }}
+        .header-main p {{
+            font-size: 13.5px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            max-width: 1200px;
+        }}
+
+        /* METRIC RIBBON */
+        .metric-ribbon {{
+            background: #ffffff;
+            border: 1px solid var(--border-light);
             border-radius: 8px;
-            font-size: 13px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            margin-bottom: 20px;
+            overflow: hidden;
+        }}
+        .metric-cell {{
+            padding: 16px 20px;
+            border-right: 1px solid var(--border-light);
+        }}
+        .metric-cell:last-child {{
+            border-right: none;
+        }}
+        .metric-label {{
+            font-size: 11.5px;
             font-weight: 600;
             color: var(--text-muted);
-            cursor: pointer;
-            transition: all 0.15s;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 4px;
         }}
-        .pill-btn:hover {{ background: #e2e8f0; color: var(--text-dark); }}
-        .pill-btn.active {{ background: var(--primary); color: #ffffff; border-color: var(--primary); }}
+        .metric-val {{
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-main);
+            font-variant-numeric: tabular-nums;
+            margin-bottom: 2px;
+        }}
+        .metric-desc {{
+            font-size: 12px;
+            color: var(--text-muted);
+        }}
+
+        /* MAIN TABS */
+        .main-tabs-bar {{
+            display: flex;
+            border-bottom: 1px solid var(--border-medium);
+            margin-bottom: 20px;
+            gap: 24px;
+            overflow-x: auto;
+        }}
+        .tab-item {{
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            padding: 10px 4px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            transition: color 0.15s, border-color 0.15s;
+        }}
+        .tab-item:hover {{
+            color: var(--text-main);
+        }}
+        .tab-item.active {{
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            font-weight: 600;
+        }}
+        .tab-count {{
+            background: #f1f5f9;
+            color: var(--text-muted);
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }}
+        .tab-item.active .tab-count {{
+            background: #e0f2fe;
+            color: #0369a1;
+        }}
+
+        /* SUB-PILLS (FILTER BAR) */
+        .filter-toolbar {{
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            background: #ffffff;
+            border: 1px solid var(--border-light);
+            padding: 10px 16px;
+            border-radius: 8px;
+        }}
+        .filter-label {{
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-right: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }}
+        .btn-filter {{
+            background: #f8fafc;
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            padding: 5px 12px;
+            font-size: 12.5px;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.12s;
+        }}
+        .btn-filter:hover {{
+            background: #f1f5f9;
+            color: var(--text-main);
+            border-color: var(--border-medium);
+        }}
+        .btn-filter.active {{
+            background: #1e293b;
+            border-color: #1e293b;
+            color: #ffffff;
+            font-weight: 600;
+        }}
 
         /* TAB PANES */
         .tab-pane {{ display: none; }}
         .tab-pane.active {{ display: block; }}
 
         /* CARDS */
-        .card {{ background: #ffffff; border: 1px solid var(--card-border); border-radius: 12px; padding: 24px; margin-bottom: 22px; box-shadow: 0 4px 10px -2px rgba(0,0,0,0.03); }}
-        .card-header {{ font-size: 16.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; }}
-
-        /* TABLES */
-        .table-responsive {{ overflow-x: auto; }}
-        table {{ width: 100%; border-collapse: collapse; font-size: 13.5px; text-align: left; }}
-        th {{ background: #f8fafc; color: var(--text-muted); font-weight: 600; padding: 12px 14px; border-bottom: 2px solid var(--card-border); }}
-        td {{ padding: 12px 14px; border-bottom: 1px solid var(--table-border); vertical-align: middle; }}
-        tr:hover td {{ background: var(--table-hover); }}
-        .highlight-row {{ background: var(--success-bg) !important; font-weight: 600; }}
-        .highlight-row td {{ color: var(--success); }}
-        .tag-pill {{ padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; display: inline-block; }}
-        .tag-proposed {{ background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }}
-        .tag-baseline {{ background: #f1f5f9; color: #475569; }}
-        .clf-badge {{ padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 700; }}
-        .clf-rf {{ background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }}
-        .clf-dt {{ background: #f1f5f9; color: #475569; }}
-
-        /* EXECUTIVE SUMMARY PANEL (STREAMLINED & SCIENTIFIC) */
-        .exec-summary-panel {{
+        .card {{
             background: #ffffff;
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 18px 22px;
-            margin-bottom: 22px;
-            box-shadow: 0 4px 12px -2px rgba(0,0,0,0.04);
-            border-left: 5px solid var(--primary);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 20px 24px;
+            margin-bottom: 20px;
         }}
-        .exec-header-bar {{
+        .card-header {{
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 12px;
+            gap: 10px;
             padding-bottom: 12px;
-            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border-light);
         }}
-        .exec-tab-purpose {{
+        .card-header-title {{
             font-size: 14.5px;
-            font-weight: 700;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            font-weight: 600;
+            color: var(--text-main);
         }}
-        .exec-sub-lead {{
-            font-size: 13px;
+        .card-tag {{
+            background: #f1f5f9;
             color: var(--text-muted);
-            margin-top: 4px;
+            font-size: 11.5px;
+            font-weight: 500;
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border-light);
+        }}
+
+        /* SCIENTIFIC DATA TABLES */
+        .table-responsive {{ overflow-x: auto; }}
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }}
+        th {{
+            background: #f8fafc;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 11.8px;
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-medium);
+            text-align: left;
+            white-space: nowrap;
+        }}
+        td {{
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-light);
+            vertical-align: middle;
+            font-variant-numeric: tabular-nums;
+        }}
+        tr:hover td {{
+            background: #f8fafc;
+        }}
+        .num-col {{
+            text-align: right;
+        }}
+        .highlight-row {{
+            background: #f0fdf4 !important;
+        }}
+        .highlight-row td {{
+            color: #14532d;
+            font-weight: 500;
+        }}
+        .tag-pill {{
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }}
+        .tag-proposed {{
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }}
+        .tag-baseline {{
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid var(--border-light);
+        }}
+        .clf-badge {{
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-size: 10.5px;
+            font-weight: 600;
+        }}
+        .clf-rf {{ background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }}
+        .clf-dt {{ background: #f1f5f9; color: #475569; border: 1px solid var(--border-light); }}
+
+        /* EXECUTIVE SUMMARY PANEL */
+        .exec-panel {{
+            background: #ffffff;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 18px 22px;
+            margin-bottom: 20px;
+        }}
+        .exec-header {{
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding-bottom: 12px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--border-light);
+        }}
+        .exec-title {{
+            font-size: 14.5px;
+            font-weight: 600;
+            color: var(--text-main);
+        }}
+        .exec-desc {{
+            font-size: 12.8px;
+            color: var(--text-muted);
+            margin-top: 3px;
             line-height: 1.45;
         }}
-        .exec-metric-ribbon {{
+        .exec-badges-row {{
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
         }}
-        .exec-metric-item {{
+        .exec-badge-item {{
             background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 4px 10px;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-dark);
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
+            border: 1px solid var(--border-light);
+            border-radius: 4px;
+            padding: 3px 9px;
+            font-size: 11.8px;
+            color: var(--text-muted);
         }}
-        .exec-metric-item.accent-blue {{ background: #eff6ff; border-color: #bfdbfe; color: #1e40af; }}
-        .exec-metric-item.accent-green {{ background: #ecfdf5; border-color: #a7f3d0; color: #065f46; }}
-        .exec-metric-item.accent-amber {{ background: #fffbeb; border-color: #fde68a; color: #92400e; }}
-        .exec-metric-item.accent-purple {{ background: #faf5ff; border-color: #e9d5ff; color: #6b21a8; }}
-
-        .exec-table-wrap {{
+        .exec-badge-item strong {{
+            color: var(--text-main);
+        }}
+        .exec-badge-item.active-item {{
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+            color: #15803d;
+        }}
+        .exec-badge-item.active-item strong {{
+            color: #15803d;
+        }}
+        .exec-table-container {{
             overflow-x: auto;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
             background: #ffffff;
-            margin-top: 10px;
+            margin-top: 8px;
         }}
         .exec-table {{
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
-            text-align: left;
+            font-size: 12.8px;
         }}
         .exec-table th {{
             background: #f8fafc;
             color: var(--text-muted);
             font-weight: 600;
-            font-size: 12px;
-            padding: 9px 12px;
-            border-bottom: 2px solid #e2e8f0;
+            font-size: 11.8px;
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-medium);
+            text-align: left;
             white-space: nowrap;
         }}
         .exec-table td {{
-            padding: 9px 12px;
-            border-bottom: 1px solid #f1f5f9;
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-light);
             vertical-align: middle;
-            font-size: 13px;
+            font-variant-numeric: tabular-nums;
         }}
-        .exec-table tr:last-child td {{
-            border-bottom: none;
-        }}
-        .exec-table tr:hover td {{
-            background: #f8fafc;
-        }}
-        .tag-pill-reduce {{
+        .exec-table tr:last-child td {{ border-bottom: none; }}
+        .exec-table tr:hover td {{ background: #f8fafc; }}
+        .tag-reduction {{
             background: #dcfce7;
             color: #15803d;
-            font-weight: 700;
-            padding: 2px 7px;
+            font-weight: 600;
+            padding: 1px 6px;
             border-radius: 4px;
-            font-size: 12px;
+            font-size: 11.5px;
         }}
-        .exec-hint-bar {{
-            margin-top: 10px;
-            font-size: 12.5px;
+        .exec-guide-note {{
+            margin-top: 8px;
+            font-size: 12px;
             color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            gap: 6px;
         }}
 
         /* GALLERY */
-        .gallery-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 18px; }}
-        .gallery-grid-3 {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px; }}
-        .gallery-card {{ background: #ffffff; border: 1px solid var(--card-border); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; position: relative; }}
-        .gallery-card:hover {{ transform: translateY(-3px); box-shadow: 0 10px 20px -5px rgba(0,0,0,0.1); }}
-        .gallery-card img {{ width: 100%; height: 260px; object-fit: contain; background: #ffffff; padding: 10px; border-bottom: 1px solid #f1f5f9; }}
-        .gallery-caption {{ padding: 12px 15px; background: #fafafa; margin-top: auto; border-top: 1px solid #f8fafc; }}
-        .gallery-caption-title {{ font-size: 13px; font-weight: 700; color: var(--text-dark); display: flex; align-items: center; justify-content: space-between; gap: 8px; }}
-        .gallery-caption-desc {{ font-size: 11.5px; color: var(--text-muted); margin-top: 5px; line-height: 1.4; }}
+        .gallery-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }}
+        .gallery-grid-3 {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; }}
+        .gallery-item {{
+            background: #ffffff;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }}
+        .gallery-item:hover {{
+            border-color: #94a3b8;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }}
+        .gallery-item img {{
+            width: 100%;
+            height: 250px;
+            object-fit: contain;
+            background: #ffffff;
+            padding: 8px;
+            border-bottom: 1px solid var(--border-light);
+        }}
+        .gallery-meta {{
+            padding: 10px 14px;
+            background: #fafafa;
+            margin-top: auto;
+        }}
+        .gallery-meta-title {{
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }}
+        .gallery-meta-desc {{
+            font-size: 11.5px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            line-height: 1.4;
+        }}
 
         /* MODAL */
-        .img-modal {{ display: none; position: fixed; z-index: 99999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 25px; }}
+        .img-modal {{
+            display: none;
+            position: fixed;
+            z-index: 99999;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }}
         .img-modal.active {{ display: flex; }}
-        .img-modal img {{ max-width: 95%; max-height: 92vh; border-radius: 8px; background: #ffffff; }}
-        .img-modal-close {{ position: absolute; top: 20px; right: 25px; font-size: 32px; color: #ffffff; cursor: pointer; font-weight: bold; }}
+        .img-modal img {{
+            max-width: 95%; max-height: 92vh;
+            border-radius: 6px;
+            background: #ffffff;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+        }}
+        .img-modal-close {{
+            position: absolute;
+            top: 20px; right: 25px;
+            font-size: 30px;
+            color: #ffffff;
+            cursor: pointer;
+            line-height: 1;
+        }}
 
-        footer {{ text-align: center; font-size: 12.5px; color: var(--text-muted); margin-top: 35px; padding: 20px 0; border-top: 1px solid var(--card-border); }}
+        /* FOOTER */
+        footer {{
+            text-align: center;
+            font-size: 12.5px;
+            color: var(--text-muted);
+            margin-top: 36px;
+            padding: 20px 0;
+            border-top: 1px solid var(--border-light);
+        }}
+        footer p {{ margin: 2px 0; }}
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header>
-        <div class="header-top">
-            <div>
-                <span class="badge-tag">Học phần An toàn thông tin</span>
-                <span class="badge-tag">Mã đề tài 2.18</span>
+    <header class="dashboard-header">
+        <div class="top-meta-bar">
+            <div class="meta-left">
+                <span class="meta-tag">Học phần An toàn thông tin</span>
+                <span class="meta-tag">Mã đề tài: 2.18</span>
             </div>
-            <div>
-                <span class="badge-tag" style="background: rgba(34, 197, 94, 0.25); color: #86efac;">✓ Tổng cộng {total_runs} lượt thực nghiệm</span>
+            <div class="meta-right">
+                <span>Bộ môn An toàn Thông tin &bull; Khoa Công nghệ Thông tin</span>
+                <span class="status-badge"><span class="status-dot"></span>{total_runs} lượt thực nghiệm</span>
             </div>
         </div>
-        <h1>🛡️ NIDS FEATURE SELECTION DASHBOARD</h1>
-        <p>Báo cáo Trực quan Nghiên cứu Khoa học: Tối ưu Phát hiện Xâm nhập Mạng bằng Lựa chọn Đặc trưng Nâng cao (Filter &bull; Wrapper GA/PSO &bull; Hybrid) trên 4 Bộ Dữ liệu Chuẩn.</p>
+        <div class="header-main">
+            <h1>Hệ Thống Thực Nghiệm & So Sánh Thuật Toán Chọn Đặc Trưng Cho NIDS</h1>
+            <p>Nghiên cứu đánh giá năng lực giảm chiều và tối ưu hóa phân loại xâm nhập mạng của các kỹ thuật Filter, Wrapper (GA, Binary PSO) và Hybrid trên 4 bộ dữ liệu: CICIDS2017, CICDDoS2019, UNSW-NB15 và NSL-KDD.</p>
+        </div>
     </header>
 
-    <!-- KPI STATS -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-label">Tổng lượt thực nghiệm</div>
-            <div class="stat-value">{total_runs}</div>
-            <div class="stat-desc">Đầy đủ 7 cấu hình dataset (Nhị phân & Đa lớp)</div>
+    <!-- STATS OVERVIEW RIBBON -->
+    <div class="metric-ribbon">
+        <div class="metric-cell">
+            <div class="metric-label">Lượt thực nghiệm</div>
+            <div class="metric-val">{total_runs}</div>
+            <div class="metric-desc">7 kịch bản phân loại nhị phân & đa lớp</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-label">Tỷ lệ giảm chiều tối đa</div>
-            <div class="stat-value">95.5%</div>
-            <div class="stat-desc">CICDDoS2019: 67 &rarr; 3 ĐT (F1 đạt 99.33%)</div>
+        <div class="metric-cell">
+            <div class="metric-label">Tỷ lệ giảm chiều tối đa</div>
+            <div class="metric-val">95.5%</div>
+            <div class="metric-desc">CICDDoS2019: 67 &rarr; 3 ĐT (F1 đạt 99.33%)</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-label">Tăng tốc độ huấn luyện</div>
-            <div class="stat-value">28 &ndash; 50x</div>
-            <div class="stat-desc">Rút ngắn thời gian huấn luyện và suy luận</div>
+        <div class="metric-cell">
+            <div class="metric-label">Tăng tốc độ huấn luyện</div>
+            <div class="metric-val">28x &ndash; 50x</div>
+            <div class="metric-desc">Rút ngắn thời gian huấn luyện và suy luận</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-label">F1-Macro cao nhất (Multi)</div>
-            <div class="stat-value">95.57%</div>
-            <div class="stat-desc">CICIDS2017 Đa lớp (Hybrid 1 PSO với chỉ 10 ĐT)</div>
+        <div class="metric-cell">
+            <div class="metric-label">F1-Macro đa lớp cao nhất</div>
+            <div class="metric-val">95.57%</div>
+            <div class="metric-desc">CICIDS2017 15 lớp (Hybrid 1 PSO &bull; 10 ĐT)</div>
         </div>
     </div>
 
-    <!-- MAIN 5 TABS NAVIGATION -->
-    <div class="main-tabs">
-        <button class="tab-btn active" onclick="switchMainTab('overview')">
-            <span>📌 Tổng quan Quy trình</span>
+    <!-- MAIN TABS NAVIGATION -->
+    <div class="main-tabs-bar">
+        <button class="tab-item active" onclick="switchMainTab('overview')">
+            <span>Tổng quan quy trình</span>
         </button>
-        <button class="tab-btn" onclick="switchMainTab('binary')">
-            <span>📊 Thực nghiệm Nhị phân</span>
-            <span class="tab-badge">{len(res_cic_bin) + len(res_dos_bin) + len(res_unsw_bin) + len(res_nsl)}</span>
+        <button class="tab-item" onclick="switchMainTab('binary')">
+            <span>Phân loại nhị phân</span>
+            <span class="tab-count">{len(res_cic_bin) + len(res_dos_bin) + len(res_unsw_bin) + len(res_nsl)}</span>
         </button>
-        <button class="tab-btn" onclick="switchMainTab('multiclass')">
-            <span>🌐 Thực nghiệm Đa lớp</span>
-            <span class="tab-badge">{len(res_cic_mul) + len(res_dos_mul) + len(res_unsw_mul)}</span>
+        <button class="tab-item" onclick="switchMainTab('multiclass')">
+            <span>Phân loại đa lớp</span>
+            <span class="tab-count">{len(res_cic_mul) + len(res_dos_mul) + len(res_unsw_mul)}</span>
         </button>
-        <button class="tab-btn" onclick="switchMainTab('advanced')">
-            <span>⚡ Đa Mô Hình & Ablation</span>
-            <span class="tab-badge">DT &bull; RF &bull; XGB</span>
+        <button class="tab-item" onclick="switchMainTab('advanced')">
+            <span>Đa mô hình & Bóc tách đặc trưng</span>
         </button>
-        <button class="tab-btn" onclick="switchMainTab('gallery')">
-            <span>🖼️ Thư viện Biểu đồ</span>
-            <span class="tab-badge">{total_gallery_count}</span>
+        <button class="tab-item" onclick="switchMainTab('gallery')">
+            <span>Đối chiếu trực quan</span>
+            <span class="tab-count">{total_gallery_count}</span>
         </button>
     </div>
 
@@ -603,21 +874,21 @@ def generate_dashboard():
     </div><!-- ==================== TAB 2: BINARY EXPERIMENTS ==================== -->
     <div id="tab-binary" class="tab-pane">
         <!-- EXECUTIVE SUMMARY TAB 2 -->
-        <div class="exec-summary-panel">
-            <div class="exec-header-bar">
+        <div class="exec-panel">
+            <div class="exec-header">
                 <div>
-                    <div class="exec-tab-purpose">💡 TỔNG QUAN MỤC TIÊU & TÓM TẮT KẾT QUẢ PHÂN LOẠI NHỊ PHÂN</div>
-                    <div class="exec-sub-lead"><strong>Mục tiêu:</strong> Khảo sát năng lực rút gọn đặc trưng của các phương pháp (Filter, Wrapper GA/PSO, Hybrid) trên 4 tập dữ liệu nhằm tối ưu thời gian huấn luyện mà vẫn giữ vững độ nhạy phát hiện xâm nhập nhị phân (Benign vs Attack).</div>
+                    <div class="exec-title">TỔNG QUAN THỰC NGHIỆM VÀ KẾT QUẢ ĐỐI CHUẨN — PHÂN LOẠI NHỊ PHÂN</div>
+                    <div class="exec-desc"><strong>Mục tiêu:</strong> Khảo sát năng lực rút gọn đặc trưng của các phương pháp (Filter, Wrapper GA/PSO, Hybrid) trên 4 tập dữ liệu nhằm tối ưu thời gian huấn luyện mà vẫn giữ vững độ nhạy phát hiện xâm nhập nhị phân (Benign vs Attack).</div>
                 </div>
-                <div class="exec-metric-ribbon">
-                    <span class="exec-metric-item accent-green">📉 Giảm chiều kỷ lục: <strong>-95.5%</strong></span>
-                    <span class="exec-metric-item accent-blue">⭐ F1-Macro cao nhất: <strong>99.59%</strong></span>
-                    <span class="exec-metric-item accent-purple">⚡ Tăng tốc độ: <strong>28x &ndash; 50x</strong></span>
-                    <span class="exec-metric-item accent-amber">🏆 Phương pháp tối ưu: <strong>Hybrid 1 GA v2</strong></span>
+                <div class="exec-badges-row">
+                    <span class="exec-badge-item active-item">Giảm chiều cao nhất: <strong>-95.5%</strong></span>
+                    <span class="exec-badge-item">F1-Macro cao nhất: <strong>99.59%</strong></span>
+                    <span class="exec-badge-item">Tăng tốc huấn luyện: <strong>28x &ndash; 50x</strong></span>
+                    <span class="exec-badge-item">Phương pháp đề xuất: <strong>Hybrid 1 GA v2</strong></span>
                 </div>
             </div>
 
-            <div class="exec-table-wrap">
+            <div class="exec-table-container">
                 <table class="exec-table">
                     <thead>
                         <tr>
@@ -637,7 +908,7 @@ def generate_dashboard():
                             <td>52 ĐT</td>
                             <td><span class="tag-pill tag-proposed">Hybrid 1 GA v2</span></td>
                             <td><strong>6 ĐT</strong></td>
-                            <td><span class="tag-pill-reduce">-88.5%</span></td>
+                            <td><span class="tag-reduction">-88.5%</span></td>
                             <td><strong>99.59%</strong> <span style="color:var(--text-muted); font-size:11.5px;">(Gốc: 99.80%)</span></td>
                             <td>Giảm <strong>36x</strong> (1.83s &rarr; 0.05s)</td>
                             <td>Bảo toàn trọn vẹn 99.6% F1 dù loại bỏ gần 90% đặc trưng lưu lượng mạng hiện đại.</td>
@@ -647,7 +918,7 @@ def generate_dashboard():
                             <td>67 ĐT</td>
                             <td><span class="tag-pill tag-proposed">Hybrid 1 GA v2</span></td>
                             <td><strong>3 ĐT</strong></td>
-                            <td><span class="tag-pill-reduce">-95.5%</span></td>
+                            <td><span class="tag-reduction">-95.5%</span></td>
                             <td><strong>99.33%</strong> <span style="color:#15803d; font-size:11.5px;">(Vượt Gốc: 99.08%)</span></td>
                             <td>Giảm <strong>45x</strong> (1.80s &rarr; 0.04s)</td>
                             <td>Đã loại bỏ Inbound artifact. Vượt cả baseline (+0.25%) sau khi gạt bỏ hoàn toàn biến nhiễu.</td>
@@ -657,7 +928,7 @@ def generate_dashboard():
                             <td>42 ĐT</td>
                             <td><span class="tag-pill tag-proposed">Hybrid 1 GA v2</span></td>
                             <td><strong>3 ĐT</strong></td>
-                            <td><span class="tag-pill-reduce">-92.8%</span></td>
+                            <td><span class="tag-reduction">-92.8%</span></td>
                             <td><strong>86.32%</strong> <span style="color:var(--text-muted); font-size:11.5px;">(Gốc: 86.36%)</span></td>
                             <td>Giảm <strong>28x</strong> (1.67s &rarr; 0.06s)</td>
                             <td>Chỉ cần đúng 3 đặc trưng vẫn giữ vững 86.3% F1 trên dữ liệu lưu lượng thực tế phức tạp nhất.</td>
@@ -667,7 +938,7 @@ def generate_dashboard():
                             <td>39 ĐT</td>
                             <td><span class="tag-pill tag-proposed">Hybrid 1 GA</span></td>
                             <td><strong>14 ĐT</strong></td>
-                            <td><span class="tag-pill-reduce">-64.1%</span></td>
+                            <td><span class="tag-reduction">-64.1%</span></td>
                             <td><strong>81.36%</strong> <span style="color:var(--text-muted); font-size:11.5px;">(Gốc: 81.36%)</span></td>
                             <td>Chuẩn kiểm thử</td>
                             <td>Dữ liệu mốc chuẩn kế thừa. Duy trì trọn vẹn 81.36% Accuracy, xác thực tính tin cậy của pipeline.</td>
@@ -675,17 +946,17 @@ def generate_dashboard():
                     </tbody>
                 </table>
             </div>
-            <div class="exec-hint-bar">
-                <span>📌 <strong>Hướng dẫn:</strong> Bấm các nút chọn <em>"Lọc theo Dataset"</em> bên dưới để kiểm tra bảng chi tiết toàn bộ 41 lượt thử nghiệm và ma trận nhầm lẫn từng thuật toán.</span>
+            <div class="exec-guide-note">
+                <span><strong>Ghi chú:</strong> Sử dụng thanh lọc bên dưới để tra cứu chi tiết 41 lượt thử nghiệm và ma trận nhầm lẫn của từng phương pháp.</span>
             </div>
         </div><!-- SUB PILLS -->
-        <div class="sub-pills-bar">
-            <span class="sub-pill-label">Lọc theo Dataset:</span>
-            <button class="pill-btn active" onclick="filterBinaryCards('all')">Tất cả ({len(res_cic_bin) + len(res_dos_bin) + len(res_unsw_bin) + len(res_nsl)})</button>
-            <button class="pill-btn" onclick="filterBinaryCards('cicids2017')">CICIDS2017 ({len(res_cic_bin)})</button>
-            <button class="pill-btn" onclick="filterBinaryCards('cicddos2019')">CICDDoS2019 ({len(res_dos_bin)})</button>
-            <button class="pill-btn" onclick="filterBinaryCards('unsw')">UNSW-NB15 ({len(res_unsw_bin)})</button>
-            <button class="pill-btn" onclick="filterBinaryCards('nslkdd')">NSL-KDD ({len(res_nsl)})</button>
+        <div class="filter-toolbar">
+            <span class="filter-label">Lọc theo Dataset:</span>
+            <button class="btn-filter active" onclick="filterBinaryCards('all')">Tất cả ({len(res_cic_bin) + len(res_dos_bin) + len(res_unsw_bin) + len(res_nsl)})</button>
+            <button class="btn-filter" onclick="filterBinaryCards('cicids2017')">CICIDS2017 ({len(res_cic_bin)})</button>
+            <button class="btn-filter" onclick="filterBinaryCards('cicddos2019')">CICDDoS2019 ({len(res_dos_bin)})</button>
+            <button class="btn-filter" onclick="filterBinaryCards('unsw')">UNSW-NB15 ({len(res_unsw_bin)})</button>
+            <button class="btn-filter" onclick="filterBinaryCards('nslkdd')">NSL-KDD ({len(res_nsl)})</button>
         </div>
 
         <!-- CICIDS2017 Binary -->
@@ -697,7 +968,7 @@ def generate_dashboard():
             <div class="table-responsive">
                 <table>
                     <thead>
-                        <tr><th>Phương pháp</th><th>Mô hình</th><th>Số ĐT (k)</th><th>Giảm (%)</th><th>Accuracy</th><th>F1-Macro</th><th>T_train</th><th>T_infer</th><th>Đánh giá</th></tr>
+                        <tr><th>Phương pháp</th><th>Mô hình</th><th class="num-col">Số ĐT (k)</th><th class="num-col">Giảm (%)</th><th class="num-col">Accuracy</th><th class="num-col">F1-Macro</th><th class="num-col">T_train</th><th class="num-col">T_infer</th><th>Đánh giá</th></tr>
                     </thead>
                     <tbody>
                         {render_table_rows(res_cic_bin, 52)}
@@ -715,7 +986,7 @@ def generate_dashboard():
             <div class="table-responsive">
                 <table>
                     <thead>
-                        <tr><th>Phương pháp</th><th>Mô hình</th><th>Số ĐT (k)</th><th>Giảm (%)</th><th>Accuracy</th><th>F1-Macro</th><th>T_train</th><th>T_infer</th><th>Đánh giá</th></tr>
+                        <tr><th>Phương pháp</th><th>Mô hình</th><th class="num-col">Số ĐT (k)</th><th class="num-col">Giảm (%)</th><th class="num-col">Accuracy</th><th class="num-col">F1-Macro</th><th class="num-col">T_train</th><th class="num-col">T_infer</th><th>Đánh giá</th></tr>
                     </thead>
                     <tbody>
                         {render_table_rows(res_dos_bin, 67)}
@@ -733,7 +1004,7 @@ def generate_dashboard():
             <div class="table-responsive">
                 <table>
                     <thead>
-                        <tr><th>Phương pháp</th><th>Mô hình</th><th>Số ĐT (k)</th><th>Giảm (%)</th><th>Accuracy</th><th>F1-Macro</th><th>T_train</th><th>T_infer</th><th>Đánh giá</th></tr>
+                        <tr><th>Phương pháp</th><th>Mô hình</th><th class="num-col">Số ĐT (k)</th><th class="num-col">Giảm (%)</th><th class="num-col">Accuracy</th><th class="num-col">F1-Macro</th><th class="num-col">T_train</th><th class="num-col">T_infer</th><th>Đánh giá</th></tr>
                     </thead>
                     <tbody>
                         {render_table_rows(res_unsw_bin, 42)}
@@ -751,7 +1022,7 @@ def generate_dashboard():
             <div class="table-responsive">
                 <table>
                     <thead>
-                        <tr><th>Phương pháp</th><th>Mô hình</th><th>Số ĐT (k)</th><th>Giảm (%)</th><th>Accuracy</th><th>F1-Macro</th><th>T_train</th><th>T_infer</th><th>Đánh giá</th></tr>
+                        <tr><th>Phương pháp</th><th>Mô hình</th><th class="num-col">Số ĐT (k)</th><th class="num-col">Giảm (%)</th><th class="num-col">Accuracy</th><th class="num-col">F1-Macro</th><th class="num-col">T_train</th><th class="num-col">T_infer</th><th>Đánh giá</th></tr>
                     </thead>
                     <tbody>
                         {render_table_rows(res_nsl, 39)}
@@ -764,21 +1035,21 @@ def generate_dashboard():
     <!-- ==================== TAB 3: MULTI-CLASS EXPERIMENTS ==================== -->
     <div id="tab-multiclass" class="tab-pane">
         <!-- EXECUTIVE SUMMARY TAB 3 -->
-        <div class="exec-summary-panel">
-            <div class="exec-header-bar">
+        <div class="exec-panel">
+            <div class="exec-header">
                 <div>
-                    <div class="exec-tab-purpose">💡 TỔNG QUAN MỤC TIÊU & TÓM TẮT KẾT QUẢ PHÂN LOẠI ĐA LỚP TẤN CÔNG (MULTI-CLASS)</div>
-                    <div class="exec-sub-lead"><strong>Mục tiêu:</strong> Đánh giá năng lực nhận diện chính xác từng biến thể tấn công cụ thể (DDoS, DoS, Brute Force, Web, Botnet, Exploits, Fuzzers,...) trong điều kiện phân bố nhãn bị mất cân bằng dữ liệu cực đoan.</div>
+                    <div class="exec-title">TỔNG QUAN THỰC NGHIỆM VÀ KẾT QUẢ ĐỐI CHUẨN — PHÂN LOẠI ĐA LỚP (MULTI-CLASS)</div>
+                    <div class="exec-desc"><strong>Mục tiêu:</strong> Đánh giá năng lực nhận diện chính xác từng biến thể tấn công cụ thể (DDoS, DoS, Brute Force, Web, Botnet, Exploits, Fuzzers,...) trong điều kiện phân bố nhãn bị mất cân bằng dữ liệu cực đoan.</div>
                 </div>
-                <div class="exec-metric-ribbon">
-                    <span class="exec-metric-item accent-green">📉 Tỷ lệ giảm chiều: <strong>-80% &ndash; -85.7%</strong></span>
-                    <span class="exec-metric-item accent-purple">⭐ F1-Macro đa lớp: <strong>95.57%</strong></span>
-                    <span class="exec-metric-item accent-blue">🚀 Đột phá UNSW: <strong>+6.54% F1</strong></span>
-                    <span class="exec-metric-item accent-amber">🏆 Phương pháp tối ưu: <strong>Hybrid 1 GA</strong></span>
+                <div class="exec-badges-row">
+                    <span class="exec-badge-item active-item">Giảm chiều đa lớp: <strong>-80.8% &ndash; -85.7%</strong></span>
+                    <span class="exec-badge-item">F1-Macro đa lớp cao nhất: <strong>95.57%</strong></span>
+                    <span class="exec-badge-item">Cải thiện trên UNSW-NB15: <strong>+6.54% F1</strong></span>
+                    <span class="exec-badge-item">Phương pháp đề xuất: <strong>Hybrid 1 GA</strong></span>
                 </div>
             </div>
 
-            <div class="exec-table-wrap">
+            <div class="exec-table-container">
                 <table class="exec-table">
                     <thead>
                         <tr>
@@ -799,7 +1070,7 @@ def generate_dashboard():
                             <td>52 ĐT</td>
                             <td><span class="tag-pill tag-proposed">Hybrid 1 GA</span></td>
                             <td><strong>10 ĐT</strong></td>
-                            <td><span class="tag-pill-reduce">-80.8%</span></td>
+                            <td><span class="tag-reduction">-80.8%</span></td>
                             <td><strong>95.57%</strong> <span style="color:var(--text-muted); font-size:11.5px;">(Gốc: 95.83%)</span></td>
                             <td>Phân tách xuất sắc 15 họ tấn công chỉ với 10 đặc trưng lưu lượng, giữ trọn vẹn F1 &gt; 95.5%.</td>
                         </tr>
@@ -809,7 +1080,7 @@ def generate_dashboard():
                             <td>42 ĐT</td>
                             <td><span class="tag-pill tag-proposed">Hybrid 1 GA</span></td>
                             <td><strong>6 ĐT</strong></td>
-                            <td><span class="tag-pill-reduce">-85.7%</span></td>
+                            <td><span class="tag-reduction">-85.7%</span></td>
                             <td><strong>55.50%</strong> <span style="color:#15803d; font-size:11.5px;">(Vượt Gốc: 48.96%)</span></td>
                             <td><strong>Đột phá ngoạn mục (+6.54% F1)</strong>: Loại bỏ biến dư thừa giúp cứu các lớp cực hiếm (Worms, Analysis).</td>
                         </tr>
@@ -819,23 +1090,23 @@ def generate_dashboard():
                             <td>67 ĐT</td>
                             <td><span class="tag-pill tag-proposed">Hybrid 1 GA</span></td>
                             <td><strong>12 ĐT</strong></td>
-                            <td><span class="tag-pill-reduce">-82.1%</span></td>
+                            <td><span class="tag-reduction">-82.1%</span></td>
                             <td><strong>88.24%</strong> <span style="color:var(--text-muted); font-size:11.5px;">(Gốc: 88.50%)</span></td>
                             <td>Phân biệt chính xác 8 kịch bản DDoS chỉ cần 12 đặc trưng thống kê gói tin, giảm 82% độ phức tạp.</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <div class="exec-hint-bar">
-                <span>📌 <strong>Hướng dẫn:</strong> F1-Macro là thước đo vàng phản ánh công bằng trên các lớp tấn công thiểu số. Bấm các nút bên dưới để xem ma trận nhầm lẫn 15&times;15, 10&times;10 và 8&times;8.</span>
+            <div class="exec-guide-note">
+                <span><strong>Ghi chú:</strong> F1-Macro là chỉ số đánh giá chính để phản ánh công bằng trên các lớp tấn công thiểu số. Bấm thanh lọc bên dưới để xem chi tiết ma trận nhầm lẫn.</span>
             </div>
         </div><!-- SUB PILLS -->
-        <div class="sub-pills-bar">
-            <span class="sub-pill-label">Lọc theo Dataset Đa lớp:</span>
-            <button class="pill-btn active" onclick="filterMultiCards('all')">Tất cả ({len(res_cic_mul) + len(res_dos_mul) + len(res_unsw_mul)})</button>
-            <button class="pill-btn" onclick="filterMultiCards('cicids2017')">CICIDS2017 Multi (7 Lớp)</button>
-            <button class="pill-btn" onclick="filterMultiCards('cicddos2019')">CICDDoS2019 Multi</button>
-            <button class="pill-btn" onclick="filterMultiCards('unsw')">UNSW-NB15 Multi (10 Lớp)</button>
+        <div class="filter-toolbar">
+            <span class="filter-label">Lọc theo Dataset Đa lớp:</span>
+            <button class="btn-filter active" onclick="filterMultiCards('all')">Tất cả ({len(res_cic_mul) + len(res_dos_mul) + len(res_unsw_mul)})</button>
+            <button class="btn-filter" onclick="filterMultiCards('cicids2017')">CICIDS2017 Multi (7 Lớp)</button>
+            <button class="btn-filter" onclick="filterMultiCards('cicddos2019')">CICDDoS2019 Multi</button>
+            <button class="btn-filter" onclick="filterMultiCards('unsw')">UNSW-NB15 Multi (10 Lớp)</button>
         </div>
 
         <!-- CICIDS2017 Multi -->
@@ -854,7 +1125,7 @@ def generate_dashboard():
                     </tbody>
                 </table>
             </div>
-            <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">💡 <strong>Điểm nhấn:</strong> Hybrid 1 PSO đạt F1-macro đa lớp 95.57% chỉ với 10 đặc trưng (so với Baseline 52 đặc trưng đạt 96.73%), giảm 80.8% chiều dữ liệu mà vẫn phân biệt tốt các lớp tấn công hiếm.</p>
+            <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px;"><strong>Nhận xét học thuật:</strong> Hybrid 1 PSO đạt F1-macro đa lớp 95.57% chỉ với 10 đặc trưng (so với Baseline 52 đặc trưng đạt 96.73%), giảm 80.8% chiều dữ liệu mà vẫn phân biệt tốt các lớp tấn công hiếm.</p>
         </div>
 
         <!-- CICDDoS2019 Multi -->
@@ -891,28 +1162,28 @@ def generate_dashboard():
                     </tbody>
                 </table>
             </div>
-            <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">💡 <strong>Điểm nhấn:</strong> Hybrid 1 GA đạt F1-macro đa lớp 55.50% với chỉ 6 đặc trưng, vượt trội hơn so với mốc Baseline 42 đặc trưng (48.96%) nhờ loại bỏ được các thuộc tính gây nhiễu phân loại.</p>
+            <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px;"><strong>Nhận xét học thuật:</strong> Hybrid 1 GA đạt F1-macro đa lớp 55.50% với chỉ 6 đặc trưng, vượt trội hơn so với mốc Baseline 42 đặc trưng (48.96%) nhờ loại bỏ được các thuộc tính gây nhiễu phân loại.</p>
         </div>
     </div>
 
     <!-- ==================== TAB 4: ADVANCED EVALUATION ==================== -->
     <div id="tab-advanced" class="tab-pane">
         <!-- EXECUTIVE SUMMARY TAB 4 -->
-        <div class="exec-summary-panel">
-            <div class="exec-header-bar">
+        <div class="exec-panel">
+            <div class="exec-header">
                 <div>
-                    <div class="exec-tab-purpose">💡 TỔNG QUAN MỤC TIÊU & TÓM TẮT ĐÁNH GIÁ NÂNG CAO (CROSS-CLASSIFIER & ABLATION)</div>
-                    <div class="exec-sub-lead"><strong>Mục tiêu:</strong> Kiểm chứng tính độc lập của tập đặc trưng rút gọn khi đưa vào các mô hình Ensemble mạnh hơn (Random Forest, XGBoost) và bóc tách (Ablation Study) tầm quan trọng của các nhóm thuộc tính nhạy cảm.</div>
+                    <div class="exec-title">ĐÁNH GIÁ TÍNH KHÁI QUÁT HÓA & BÓC TÁCH ĐẶC TRƯNG (ABLATION STUDY)</div>
+                    <div class="exec-desc"><strong>Mục tiêu:</strong> Kiểm chứng tính độc lập của tập đặc trưng rút gọn khi đưa vào các mô hình Ensemble mạnh hơn (Random Forest, XGBoost) và bóc tách (Ablation Study) tầm quan trọng của các nhóm thuộc tính nhạy cảm.</div>
                 </div>
-                <div class="exec-metric-ribbon">
-                    <span class="exec-metric-item accent-blue">🌲 Random Forest F1: <strong>99.85%</strong></span>
-                    <span class="exec-metric-item accent-green">⚡ XGBoost F1: <strong>99.82%</strong></span>
-                    <span class="exec-metric-item accent-amber">⚠️ Sụt giảm khi bỏ Port: <strong>-15.18%</strong></span>
-                    <span class="exec-metric-item accent-purple">🚨 Sụt giảm khi bỏ Flag: <strong>-6.40%</strong></span>
+                <div class="exec-badges-row">
+                    <span class="exec-badge-item">Random Forest F1: <strong>99.85%</strong></span>
+                    <span class="exec-badge-item active-item">XGBoost F1: <strong>99.82%</strong></span>
+                    <span class="exec-badge-item">Sụt giảm khi bỏ Port: <strong>-15.18% F1</strong></span>
+                    <span class="exec-badge-item">Sụt giảm khi bỏ Flag: <strong>-6.40% F1</strong></span>
                 </div>
             </div>
 
-            <div class="exec-table-wrap">
+            <div class="exec-table-container">
                 <table class="exec-table">
                     <thead>
                         <tr>
@@ -930,7 +1201,7 @@ def generate_dashboard():
                             <td>CICIDS2017 (Tập 6 ĐT tối ưu)</td>
                             <td>Decision Tree &rarr; <strong>Random Forest</strong> &rarr; <strong>XGBoost</strong></td>
                             <td>DT: 99.59% &bull; RF: <strong>99.85%</strong> &bull; XGB: <strong>99.82%</strong></td>
-                            <td><span class="tag-pill-reduce">+0.26% F1</span></td>
+                            <td><span class="tag-reduction">+0.26% F1</span></td>
                             <td>Tập đặc trưng tối ưu có tính khái quát hóa cực cao, mô hình ensemble mạnh hơn tiếp tục nâng cao hiệu năng.</td>
                         </tr>
                         <tr>
@@ -938,7 +1209,7 @@ def generate_dashboard():
                             <td>CICDDoS2019 & UNSW-NB15</td>
                             <td>Thử nghiệm chéo DT vs RF vs XGBoost</td>
                             <td>DDoS: <strong>99.70% (RF)</strong> &bull; UNSW: <strong>88.45% (RF)</strong></td>
-                            <td><span class="tag-pill-reduce">+2.13% F1</span></td>
+                            <td><span class="tag-reduction">+2.13% F1</span></td>
                             <td>Đặc trưng được tinh chọn không bị thiên vị mô hình (No Classifier Bias), hoạt động tối ưu trên mọi kiến trúc.</td>
                         </tr>
                         <tr>
@@ -960,8 +1231,8 @@ def generate_dashboard():
                     </tbody>
                 </table>
             </div>
-            <div class="exec-hint-bar">
-                <span>📌 <strong>Hướng dẫn:</strong> Xem chi tiết Bảng 1 (đối sánh chéo theo từng phương pháp chọn đặc trưng) và Bảng 2 (đối chiếu toàn bộ chỉ số Accuracy, Precision, Recall, F1) ở phần dưới.</span>
+            <div class="exec-guide-note">
+                <span><strong>Ghi chú:</strong> Bảng 1 đối chiếu chéo tính độc lập mô hình; Bảng 2 đo lường mức độ phụ thuộc vào từng thuộc tính trọng yếu.</span>
             </div>
         </div><!-- Cross-classifier -->
         <div class="card">
@@ -973,7 +1244,7 @@ def generate_dashboard():
             <div class="table-responsive">
                 <table>
                     <thead>
-                        <tr><th>Bộ dữ liệu</th><th>Tập đặc trưng</th><th>Số ĐT (k)</th><th>Decision Tree (F1)</th><th>Random Forest (F1)</th><th>XGBoost (F1-macro)</th></tr>
+                        <tr><th>Bộ dữ liệu</th><th>Tập đặc trưng</th><th class="num-col">Số ĐT (k)</th><th class="num-col">Decision Tree (F1)</th><th class="num-col">Random Forest (F1)</th><th class="num-col">XGBoost (F1)</th></tr>
                     </thead>
                     <tbody>
 """
@@ -1002,10 +1273,10 @@ def generate_dashboard():
             <tr>
                 <td><strong>{ds_n}</strong></td>
                 <td>{m_k}</td>
-                <td><strong>{k_f}</strong></td>
-                <td>{f1_dt:.2f}%</td>
-                <td>{f1_rf:.2f}%</td>
-                <td><strong>{f1_xgb:.2f}%</strong></td>
+                <td class="num-col"><strong>{k_f}</strong></td>
+                <td class="num-col">{f1_dt:.2f}%</td>
+                <td class="num-col">{f1_rf:.2f}%</td>
+                <td class="num-col"><strong>{f1_xgb:.2f}%</strong></td>
             </tr>
             """
 
@@ -1057,22 +1328,22 @@ def generate_dashboard():
     <!-- ==================== TAB 5: GALLERY (CROSS-DATASET COMPARISON) ==================== -->
     <div id="tab-gallery" class="tab-pane">
         <!-- EXECUTIVE SUMMARY TAB 5 -->
-        <div class="exec-summary-panel">
-            <div class="exec-header-bar">
+        <div class="exec-panel">
+            <div class="exec-header">
                 <div>
-                    <div class="exec-tab-purpose">💡 TỔNG QUAN MỤC TIÊU & TÓM TẮT ĐỐI CHIẾU TRỰC QUAN HÓA (20 BIỂU ĐỒ)</div>
-                    <div class="exec-sub-lead"><strong>Mục tiêu:</strong> Cung cấp bằng chứng hình ảnh đối chiếu chéo (Cross-Dataset Comparison) giữa các tập dữ liệu nhằm giải thích bản chất không gian, tính đa cộng tuyến và động học tối ưu hóa của các thuật toán chọn đặc trưng.</div>
+                    <div class="exec-title">ĐỐI CHIẾU TRỰC QUAN HÓA & KHÁM PHÁ DỮ LIỆU (20 BIỂU ĐỒ)</div>
+                    <div class="exec-desc"><strong>Mục tiêu:</strong> Cung cấp bằng chứng hình ảnh đối chiếu chéo (Cross-Dataset Comparison) giữa các tập dữ liệu nhằm giải thích bản chất không gian, tính đa cộng tuyến và động học tối ưu hóa của các thuật toán chọn đặc trưng.</div>
                 </div>
-                <div class="exec-metric-ribbon">
-                    <span class="exec-metric-item accent-blue">🌌 <strong>3</strong> PCA 2D Không gian</span>
-                    <span class="exec-metric-item accent-amber">🔥 <strong>3</strong> Heatmap Tương quan</span>
-                    <span class="exec-metric-item accent-green">📊 <strong>3</strong> Mutual Information</span>
-                    <span class="exec-metric-item accent-purple">🎯 <strong>3</strong> Phân bố Lớp</span>
-                    <span class="exec-metric-item accent-blue">📈 <strong>8</strong> Hội tụ GA/PSO</span>
+                <div class="exec-badges-row">
+                    <span class="exec-badge-item">PCA 2D: <strong>3 biểu đồ</strong></span>
+                    <span class="exec-badge-item">Heatmap: <strong>3 biểu đồ</strong></span>
+                    <span class="exec-badge-item active-item">Mutual Information: <strong>3 biểu đồ</strong></span>
+                    <span class="exec-badge-item">Phân bố nhãn: <strong>3 biểu đồ</strong></span>
+                    <span class="exec-badge-item">Động học GA/PSO: <strong>8 biểu đồ</strong></span>
                 </div>
             </div>
 
-            <div class="exec-table-wrap">
+            <div class="exec-table-container">
                 <table class="exec-table">
                     <thead>
                         <tr>
@@ -1116,18 +1387,18 @@ def generate_dashboard():
                     </tbody>
                 </table>
             </div>
-            <div class="exec-hint-bar">
-                <span>📌 <strong>Hướng dẫn:</strong> Bấm các nút chuyên đề bên dưới để lọc nhanh loại biểu đồ mong muốn. Bấm vào bất kỳ ảnh nào để phóng to toàn màn hình độ nét cao.</span>
+            <div class="exec-guide-note">
+                <span><strong>Ghi chú:</strong> Bấm chọn các chuyên đề bên dưới để lọc loại biểu đồ cần đối chiếu. Nhấp chuột vào ảnh để phóng to toàn màn hình.</span>
             </div>
         </div><!-- SUB PILLS BAR -->
-        <div class="sub-pills-bar">
-            <span class="sub-pill-label">So sánh Đối đầu:</span>
-            <button class="pill-btn active" onclick="filterGalleryCards('all')">🌟 Tất cả Chuyên đề ({total_gallery_count})</button>
-            <button class="pill-btn" onclick="filterGalleryCards('pca')">🌌 Phân tách Không gian PCA 2D ({len(pca_data)})</button>
-            <button class="pill-btn" onclick="filterGalleryCards('heatmap')">🔥 Ma trận Tương quan ({len(heatmap_data)})</button>
-            <button class="pill-btn" onclick="filterGalleryCards('mi')">📊 Xếp hạng Mutual Info ({len(mi_data)})</button>
-            <button class="pill-btn" onclick="filterGalleryCards('dist')">🎯 Phân bố Lớp & Tần suất ({len(dist_data)})</button>
-            <button class="pill-btn" onclick="filterGalleryCards('conv')">📈 Đường cong Hội tụ GA / PSO ({len(conv_data)})</button>
+        <div class="filter-toolbar">
+            <span class="filter-label">So sánh Đối đầu:</span>
+            <button class="btn-filter active" onclick="filterGalleryCards('all')">Tất cả chuyên đề ({total_gallery_count})</button>
+            <button class="btn-filter" onclick="filterGalleryCards('pca')">1. Không gian PCA 2D ({len(pca_data)})</button>
+            <button class="btn-filter" onclick="filterGalleryCards('heatmap')">2. Ma trận tương quan ({len(heatmap_data)})</button>
+            <button class="btn-filter" onclick="filterGalleryCards('mi')">3. Xếp hạng Mutual Info ({len(mi_data)})</button>
+            <button class="btn-filter" onclick="filterGalleryCards('dist')">4. Phân bố nhãn lớp ({len(dist_data)})</button>
+            <button class="btn-filter" onclick="filterGalleryCards('conv')">5. Động học hội tụ GA/PSO ({len(conv_data)})</button>
         </div>
 
         <!-- 1. PCA 2D -->
@@ -1137,7 +1408,7 @@ def generate_dashboard():
                 <span class="badge-tag" style="background: #e0f2fe; color: #0369a1;">Cross-Dataset PCA Projection</span>
             </div>
             <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Chiếu giảm chiều từ không gian $D$ đặc trưng xuống 2 thành phần chính ($PC_1, PC_2$). Trực quan hóa độ phân tách giữa cụm Benign và Attack — <strong>Lý giải khoa học:</strong> Tại sao CICDDoS2019 đạt F1 > 99% (cụm DDoS tách biệt hoàn toàn), trong khi UNSW-NB15 chỉ đạt F1 ~ 86% (các kỹ thuật tấn công tinh vi chồng lấn nặng nề lên lưu lượng thường).</p>
-            {render_gallery_grid(pca_data, "🌌", 3)}
+            {render_gallery_grid(pca_data, 3)}
         </div>
 
         <!-- 2. CORRELATION HEATMAP -->
@@ -1147,7 +1418,7 @@ def generate_dashboard():
                 <span class="badge-tag" style="background: #e0f2fe; color: #0369a1;">Correlation Matrix Heatmap</span>
             </div>
             <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Đo lường mức độ tương quan tuyến tính giữa tất cả các cặp đặc trưng. Hệ số tương quan cao (|r| &ge; 0.9) thể hiện sự dư thừa dữ liệu nghiêm trọng &mdash; đây là cơ sở thực nghiệm thuyết phục để loại bỏ tới 80&ndash;95% số chiều mà không làm tổn hao thông tin quan trọng.</p>
-            {render_gallery_grid(heatmap_data, "🔥", 3)}
+            {render_gallery_grid(heatmap_data, 3)}
         </div>
 
         <!-- 3. MUTUAL INFORMATION -->
@@ -1157,7 +1428,7 @@ def generate_dashboard():
                 <span class="badge-tag" style="background: #e0f2fe; color: #0369a1;">Information Gain Ranking</span>
             </div>
             <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Đo lường sự phụ thuộc phi tuyến giữa từng đặc trưng và nhãn lớp tấn công. Giúp phát hiện các thuộc tính chi phối quyết định (như <code>Destination Port</code> trên CICDDoS2019) so với các bộ dữ liệu có thông tin phân bố đều (CICIDS2017, UNSW-NB15).</p>
-            {render_gallery_grid(mi_data, "📊", 3)}
+            {render_gallery_grid(mi_data, 3)}
         </div>
 
         <!-- 4. CLASS DISTRIBUTION -->
@@ -1167,7 +1438,7 @@ def generate_dashboard():
                 <span class="badge-tag" style="background: #e0f2fe; color: #0369a1;">Class Distribution & Imbalance</span>
             </div>
             <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Khảo sát mức độ mất cân bằng giữa lưu lượng lành tính và các lớp tấn công. Làm sáng tỏ lý do bắt buộc phải dùng Stratified Sampling và đánh giá bằng F1-Macro / Recall thay vì chỉ nhìn vào Accuracy đơn thuần.</p>
-            {render_gallery_grid(dist_data, "🎯", 3)}
+            {render_gallery_grid(dist_data, 3)}
         </div>
 
         <!-- 5. CONVERGENCE -->
@@ -1177,13 +1448,13 @@ def generate_dashboard():
                 <span class="badge-tag" style="background: #e0f2fe; color: #0369a1;">Fitness Evolution</span>
             </div>
             <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Biểu đồ tiến hóa hàm thích nghi (Fitness = F1 &minus; &alpha; &times; k/D) qua từng thế hệ của GA và PSO. Chứng minh khả năng hội tụ nhanh chóng (10&ndash;15 thế hệ) và điểm cân bằng Pareto tối ưu giữa độ chính xác và số lượng đặc trưng.</p>
-            {render_gallery_grid(conv_data, "📈", 4)}
+            {render_gallery_grid(conv_data, 4)}
         </div>
     </div>
 
     <footer>
-        <p>Báo cáo Nghiên cứu Khoa học Đề tài 2.18 &mdash; NIDS Feature Selection</p>
-        <p>Khoa Công nghệ Thông tin &bull; Trường Đại học Bách Khoa &bull; Đại học Đà Nẵng</p>
+        <p><strong>Báo cáo Kết quả Nghiên cứu & Đồ án Chuyên ngành</strong> &mdash; Đề tài: Lựa chọn đặc trưng cho Hệ thống NIDS (Mã đề tài: 2.18)</p>
+        <p>Bộ môn An toàn Thông tin &bull; Khoa Công nghệ Thông tin &bull; Năm học 2026&ndash;2027</p>
     </footer>
 </div>
 
@@ -1199,14 +1470,14 @@ def generate_dashboard():
     // 1. Chuyển Main Tabs lớn
     function switchMainTab(tabId) {
         document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
         
         const target = document.getElementById('tab-' + tabId);
         if (target) {
             target.classList.add('active');
         }
         
-        const btns = document.querySelectorAll('.tab-btn');
+        const btns = document.querySelectorAll('.tab-item');
         btns.forEach(b => {
             if (b.getAttribute('onclick').includes(tabId)) {
                 b.classList.add('active');
@@ -1216,7 +1487,7 @@ def generate_dashboard():
 
     // 2. Lọc Sub-pills trong Tab Nhị phân
     function filterBinaryCards(ds) {
-        document.querySelectorAll('#tab-binary .pill-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('#tab-binary .btn-filter').forEach(b => b.classList.remove('active'));
         event.target.classList.add('active');
 
         const cards = document.querySelectorAll('.bin-card');
@@ -1231,7 +1502,7 @@ def generate_dashboard():
 
     // 3. Lọc Sub-pills trong Tab Đa lớp
     function filterMultiCards(ds) {
-        document.querySelectorAll('#tab-multiclass .pill-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('#tab-multiclass .btn-filter').forEach(b => b.classList.remove('active'));
         event.target.classList.add('active');
 
         const cards = document.querySelectorAll('.mul-card');
@@ -1246,7 +1517,7 @@ def generate_dashboard():
 
     // 4. Lọc Chuyên đề trong Tab Thư viện Biểu đồ
     function filterGalleryCards(type) {
-        document.querySelectorAll('#tab-gallery .pill-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('#tab-gallery .btn-filter').forEach(b => b.classList.remove('active'));
         event.target.classList.add('active');
 
         const sections = document.querySelectorAll('.g-sec');
