@@ -1,0 +1,23 @@
+{
+  "n_features_selected": 5,
+  "n_features_total": 52,
+  "selected_features": [
+    "Destination Port",
+    "Bwd IAT Std",
+    "Subflow Fwd Bytes",
+    "Init_Win_bytes_forward",
+    "Init_Win_bytes_backward"
+  ],
+  "accuracy": 0.9977901999135124,
+  "precision_macro": 0.996202466367681,
+  "recall_macro": 0.9959237863770274,
+  "f1_macro": 0.9960630620949233,
+  "train_time_sec": 76.92367601394653,
+  "inference_time_sec": 1.01188063621521,
+  "method": "ga",
+  "search_classifier": "dt",
+  "classifier": "rf",
+  "best_fitness_on_subsample": 0.8806801347899823,
+  "search_time_sec": 19.328811407089233,
+  "n_fitness_evaluations": 769
+}

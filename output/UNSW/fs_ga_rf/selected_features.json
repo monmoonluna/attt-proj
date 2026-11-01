@@ -1,0 +1,22 @@
+{
+  "n_features_selected": 4,
+  "n_features_total": 42,
+  "selected_features": [
+    "sbytes",
+    "sttl",
+    "ct_srv_src",
+    "ct_srv_dst"
+  ],
+  "accuracy": 0.8360175873293495,
+  "precision_macro": 0.8579911106896253,
+  "recall_macro": 0.8227103758218643,
+  "f1_macro": 0.8280893029620833,
+  "train_time_sec": 3.579519033432007,
+  "inference_time_sec": 0.22844791412353516,
+  "method": "ga",
+  "search_classifier": "dt",
+  "classifier": "rf",
+  "best_fitness_on_subsample": 0.8417510122607879,
+  "search_time_sec": 359.6535701751709,
+  "n_fitness_evaluations": 753
+}

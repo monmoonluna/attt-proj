@@ -1,0 +1,26 @@
+{
+  "n_features_selected": 9,
+  "n_features_total": 42,
+  "selected_features": [
+    "service",
+    "sbytes",
+    "dbytes",
+    "sttl",
+    "sloss",
+    "response_body_len",
+    "ct_dst_sport_ltm",
+    "ct_dst_src_ltm",
+    "ct_src_ltm"
+  ],
+  "accuracy": 0.7535709080308993,
+  "precision_macro": 0.5330890465224221,
+  "recall_macro": 0.5655801272392089,
+  "f1_macro": 0.5346366559646528,
+  "train_time_sec": 0.4218616485595703,
+  "inference_time_sec": 0.018639326095581055,
+  "method": "ga",
+  "classifier": "dt",
+  "best_fitness_on_subsample": 0.5628717382097859,
+  "search_time_sec": 499.375834941864,
+  "n_fitness_evaluations": 720
+}
