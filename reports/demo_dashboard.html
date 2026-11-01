@@ -113,14 +113,14 @@
         .clf-rf { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
         .clf-dt { background: #f1f5f9; color: #475569; }
 
-        /* TAB EXECUTIVE SUMMARY */
+        /* TAB EXECUTIVE SUMMARY & RESULT OVERVIEW */
         .tab-summary-panel {
             background: #ffffff;
             border: 1px solid var(--card-border);
             border-radius: 12px;
-            padding: 20px 24px;
+            padding: 22px 26px;
             margin-bottom: 22px;
-            box-shadow: 0 4px 12px -2px rgba(0,0,0,0.04);
+            box-shadow: 0 4px 12px -2px rgba(0,0,0,0.03);
             border-left: 5px solid var(--primary);
         }
         .tab-summary-header {
@@ -134,49 +134,97 @@
             margin-bottom: 16px;
         }
         .tab-summary-title {
-            font-size: 15px;
-            font-weight: 700;
+            font-size: 15.5px;
+            font-weight: 800;
             color: var(--primary);
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        .summary-cards-grid {
+        .summary-kpi-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 14px;
+            margin-bottom: 16px;
         }
-        .summary-box {
+        .summary-kpi-card {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
             border-radius: 10px;
-            padding: 16px 18px;
+            padding: 14px 18px;
+            border-left: 4px solid var(--primary);
             display: flex;
             flex-direction: column;
-            transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+            transition: transform 0.15s, box-shadow 0.15s;
         }
-        .summary-box:hover {
-            border-color: #cbd5e1;
+        .summary-kpi-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 14px -3px rgba(0,0,0,0.05);
         }
-        .summary-box-icon {
-            font-size: 24px;
-            margin-bottom: 8px;
+        .summary-kpi-card.success { border-left-color: #16a34a; }
+        .summary-kpi-card.warning { border-left-color: #d97706; }
+        .summary-kpi-card.purple  { border-left-color: #9333ea; }
+        .summary-kpi-card.info    { border-left-color: #0284c7; }
+
+        .kpi-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .summary-box-title {
+        .kpi-val {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin: 4px 0;
+            line-height: 1.2;
+        }
+        .kpi-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .summary-findings-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px 20px;
+        }
+        .findings-title {
             font-size: 13.5px;
             font-weight: 700;
             color: var(--text-dark);
-            margin-bottom: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
-        .summary-box-desc {
+        .summary-findings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 12px;
+        }
+        .finding-item {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px 15px;
             font-size: 12.5px;
-            color: var(--text-muted);
             line-height: 1.5;
+            color: var(--text-muted);
         }
-        .summary-box-desc strong {
+        .finding-item strong {
             color: var(--text-dark);
+        }
+        .finding-tag {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 6px;
         }
 
         /* GALLERY */
@@ -292,32 +340,59 @@
 
     <!-- ==================== TAB 2: BINARY EXPERIMENTS ==================== -->
     <div id="tab-binary" class="tab-pane">
-        <!-- EXECUTIVE SUMMARY TAB 2 -->
+        <!-- EXECUTIVE SUMMARY & RESULT HIGHLIGHTS TAB 2 -->
         <div class="tab-summary-panel">
             <div class="tab-summary-header">
-                <span class="tab-summary-title">💡 TỔNG QUAN MỤC TIÊU & PHÁT HIỆN CHÍNH — THỰC NGHIỆM PHÂN LOẠI NHỊ PHÂN</span>
+                <span class="tab-summary-title">📊 TỔNG QUAN MỤC TIÊU & TÓM TẮT KẾT QUẢ PHÂN LOẠI NHỊ PHÂN</span>
                 <span class="badge-tag" style="background: #e0f2fe; color: #0369a1;">4 Bộ Dữ Liệu &bull; 41 Lượt Thử Nghiệm</span>
             </div>
-            <div class="summary-cards-grid">
-                <div class="summary-box">
-                    <div class="summary-box-icon">🎯</div>
-                    <div class="summary-box-title">Mục Tiêu Tab Này</div>
-                    <div class="summary-box-desc">Đánh giá năng lực <strong>tinh lọc chiều dữ liệu tối đa</strong> mà vẫn bảo toàn độ nhạy phát hiện xâm nhập nhị phân (phân biệt giữa lưu lượng sạch Benign và tấn công bất kỳ).</div>
+
+            <!-- 4 KPI RESULT CARDS -->
+            <div class="summary-kpi-grid">
+                <div class="summary-kpi-card success">
+                    <span class="kpi-label">Giảm chiều tối đa</span>
+                    <span class="kpi-val" style="color: #16a34a;">95.5%</span>
+                    <span class="kpi-desc">CICDDoS2019: 67 &rarr; 3 ĐT (F1 đạt 99.33%)</span>
                 </div>
-                <div class="summary-box">
-                    <div class="summary-box-icon">🔍</div>
-                    <div class="summary-box-title">Trọng Tâm Cần Quan Sát</div>
-                    <div class="summary-box-desc">So sánh cột <strong>Số ĐT (k)</strong> và <strong>Tỷ lệ giảm (%)</strong> đối chiếu với <strong>F1-Macro</strong> để tìm điểm cân bằng Pareto giữa độ phức tạp mô hình và hiệu năng.</div>
+                <div class="summary-kpi-card info">
+                    <span class="kpi-label">F1-Macro cao nhất (ĐT rút gọn)</span>
+                    <span class="kpi-val" style="color: #0284c7;">99.59%</span>
+                    <span class="kpi-desc">CICIDS2017: Chỉ với 6 ĐT (Hybrid 1 GA v2)</span>
                 </div>
-                <div class="summary-box">
-                    <div class="summary-box-icon">🚀</div>
-                    <div class="summary-box-title">Phát Hiện Cốt Lõi (Key Finding)</div>
-                    <div class="summary-box-desc"><strong>Hybrid 1 (Filter + GA/PSO v2)</strong> đạt kỷ lục giảm chiều: CICDDoS2019 giảm <strong>95.5%</strong> (67 &rarr; 3 ĐT, F1: 99.33%), CICIDS2017 giảm <strong>88.5%</strong> (52 &rarr; 6 ĐT, F1: 99.59%).</div>
+                <div class="summary-kpi-card warning">
+                    <span class="kpi-label">Thuật toán đề xuất</span>
+                    <span class="kpi-val" style="color: #d97706; font-size: 20px;">Hybrid 1 GA / PSO</span>
+                    <span class="kpi-desc">Tối ưu đa mục tiêu Pareto (F1 vs Số ĐT)</span>
                 </div>
-                <div class="summary-box">
-                    <div class="summary-box-icon">⚡</div>
-                    <div class="summary-box-title">Giá Trị Thực Tiễn NIDS</div>
-                    <div class="summary-box-desc">Rút ngắn thời gian huấn luyện <strong>28 &ndash; 50 lần</strong> và giảm độ trễ suy luận, đáp ứng hoàn hảo yêu cầu giám sát gói tin lưu lượng mạng thời gian thực.</div>
+                <div class="summary-kpi-card purple">
+                    <span class="kpi-label">Tăng tốc độ huấn luyện</span>
+                    <span class="kpi-val" style="color: #9333ea;">28x &ndash; 50x</span>
+                    <span class="kpi-desc">Rút ngắn thời gian train từ 1.83s còn 0.04s</span>
+                </div>
+            </div>
+
+            <!-- DETAILED RESULT FINDINGS PER DATASET -->
+            <div class="summary-findings-box">
+                <div class="findings-title">
+                    <span>📌 Tóm Tắt Kết Quả & Điểm Nhấn Định Lượng Từng Bộ Dữ Liệu:</span>
+                </div>
+                <div class="summary-findings-grid">
+                    <div class="finding-item">
+                        <span class="finding-tag" style="background: #e0f2fe; color: #0369a1;">CICIDS2017 (Gốc: 52 ĐT)</span><br>
+                        Baseline đạt F1 99.80%. Thuật toán đề xuất <strong>Hybrid 1 GA v2</strong> chỉ cần <strong>6 đặc trưng (-88.5%)</strong> vẫn đạt F1 <strong>99.59%</strong>. Thời gian huấn luyện giảm 36 lần (1.83s &rarr; 0.05s).
+                    </div>
+                    <div class="finding-item">
+                        <span class="finding-tag" style="background: #fef3c7; color: #92400e;">CICDDoS2019 (Gốc: 67 ĐT)</span><br>
+                        Đã loại bỏ Inbound artifact. <strong>Hybrid 1 GA v2</strong> giảm từ 67 xuống đúng <strong>3 đặc trưng (-95.5%)</strong> đạt F1 <strong>99.33%</strong>, thậm chí vượt cả Baseline (99.08%) nhờ loại bỏ biến nhiễu.
+                    </div>
+                    <div class="finding-item">
+                        <span class="finding-tag" style="background: #f3e8ff; color: #7e22ce;">UNSW-NB15 (Gốc: 42 ĐT)</span><br>
+                        Lưu lượng mạng thực tế phức tạp nhất. <strong>Hybrid 1 GA v2</strong> rút gọn còn <strong>3 đặc trưng (-92.8%)</strong> vẫn giữ vững F1 <strong>86.32%</strong> (ngang ngửa Baseline 42 ĐT đạt 86.36%).
+                    </div>
+                    <div class="finding-item">
+                        <span class="finding-tag" style="background: #f1f5f9; color: #475569;">NSL-KDD (Gốc: 39 ĐT)</span><br>
+                        Dữ liệu mốc chuẩn kế thừa. <strong>Hybrid 1 GA</strong> chọn lọc 14 đặc trưng duy trì trọn vẹn Accuracy mốc chuẩn <strong>81.36%</strong>, xác thực tính tin cậy của pipeline.
+                    </div>
                 </div>
             </div>
         </div>
@@ -911,32 +986,55 @@
 
     <!-- ==================== TAB 3: MULTI-CLASS EXPERIMENTS ==================== -->
     <div id="tab-multiclass" class="tab-pane">
-        <!-- EXECUTIVE SUMMARY TAB 3 -->
+        <!-- EXECUTIVE SUMMARY & RESULT HIGHLIGHTS TAB 3 -->
         <div class="tab-summary-panel">
             <div class="tab-summary-header">
-                <span class="tab-summary-title">💡 TỔNG QUAN MỤC TIÊU & PHÁT HIỆN CHÍNH — PHÂN LOẠI ĐA LỚP TẤN CÔNG (MULTI-CLASS NIDS)</span>
+                <span class="tab-summary-title">📊 TỔNG QUAN MỤC TIÊU & TÓM TẮT KẾT QUẢ PHÂN LOẠI ĐA LỚP TẤN CÔNG</span>
                 <span class="badge-tag" style="background: #f3e8ff; color: #7e22ce;">3 Bộ Dữ Liệu &bull; 18 Lượt Thử Nghiệm</span>
             </div>
-            <div class="summary-cards-grid">
-                <div class="summary-box">
-                    <div class="summary-box-icon">🎯</div>
-                    <div class="summary-box-title">Mục Tiêu Tab Này</div>
-                    <div class="summary-box-desc">Thử thách thuật toán trên bài toán thực tế: <strong>nhận diện chính xác từng biến thể tấn công cụ thể</strong> (DDoS, DoS, Brute Force, Web, Botnet, Exploits, Fuzzers,...).</div>
+
+            <!-- 4 KPI RESULT CARDS -->
+            <div class="summary-kpi-grid">
+                <div class="summary-kpi-card info">
+                    <span class="kpi-label">F1-Macro Đa Lớp Cao Nhất</span>
+                    <span class="kpi-val" style="color: #0284c7;">95.57%</span>
+                    <span class="kpi-desc">CICIDS2017: 7 nhóm tấn công với 10 ĐT</span>
                 </div>
-                <div class="summary-box">
-                    <div class="summary-box-icon">🔍</div>
-                    <div class="summary-box-title">Trọng Tâm Cần Quan Sát</div>
-                    <div class="summary-box-desc">Đặc biệt lưu ý cột <strong>F1-Macro Đa Lớp</strong> — thước đo vàng phản ánh khả năng phát hiện các lớp tấn công hiểm hóc có tần suất cực hiếm bị mất cân bằng dữ liệu.</div>
+                <div class="summary-kpi-card success">
+                    <span class="kpi-label">Đột Phá Vượt Baseline</span>
+                    <span class="kpi-val" style="color: #16a34a;">+6.54% F1</span>
+                    <span class="kpi-desc">UNSW-NB15: Hybrid GA (55.50% vs 48.96%)</span>
                 </div>
-                <div class="summary-box">
-                    <div class="summary-box-icon">🏆</div>
-                    <div class="summary-box-title">Phát Hiện Đột Phá (Breakthrough)</div>
-                    <div class="summary-box-desc">Trên UNSW-NB15, <strong>Hybrid 1 GA đạt F1-macro 55.50%</strong> (với chỉ 6 ĐT), <strong>vượt xa Baseline 42 ĐT (48.96%)</strong> nhờ loại bỏ các thuộc tính gây nhiễu phân loại.</div>
+                <div class="summary-kpi-card warning">
+                    <span class="kpi-label">Giảm Chiều Đa Lớp Tối Đa</span>
+                    <span class="kpi-val" style="color: #d97706;">85.7%</span>
+                    <span class="kpi-desc">UNSW-NB15: 42 &rarr; 6 ĐT (F1 tăng mạnh)</span>
                 </div>
-                <div class="summary-box">
-                    <div class="summary-box-icon">🛡️</div>
-                    <div class="summary-box-title">Ý Nghĩa An Ninh Mạng</div>
-                    <div class="summary-box-desc">Chứng minh chọn lọc đặc trưng tối ưu không chỉ làm nhẹ mô hình, mà còn <strong>làm sắc nét ranh giới quyết định</strong> giữa các kỹ thuật tấn công tinh vi.</div>
+                <div class="summary-kpi-card purple">
+                    <span class="kpi-label">Mô Hình Đề Xuất</span>
+                    <span class="kpi-val" style="color: #9333ea; font-size: 20px;">Hybrid 1 PSO & GA</span>
+                    <span class="kpi-desc">Bảo toàn phát hiện các lớp tấn công hiếm</span>
+                </div>
+            </div>
+
+            <!-- DETAILED RESULT FINDINGS PER DATASET -->
+            <div class="summary-findings-box">
+                <div class="findings-title">
+                    <span>📌 Tóm Tắt Kết Quả & Điểm Nhấn Định Lượng Từng Bộ Dữ Liệu Đa Lớp:</span>
+                </div>
+                <div class="summary-findings-grid">
+                    <div class="finding-item">
+                        <span class="finding-tag" style="background: #e0f2fe; color: #0369a1;">CICIDS2017 Đa Lớp (7 Lớp)</span><br>
+                        Baseline 52 ĐT đạt F1-macro 96.73%. <strong>Hybrid 1 PSO</strong> chỉ với <strong>10 đặc trưng (-80.8%)</strong> đạt F1-macro <strong>95.57%</strong>. Nhận diện cực tốt các lớp tấn công DoS, DDoS, PortScan, Brute Force, Web Attacks và Botnet.
+                    </div>
+                    <div class="finding-item">
+                        <span class="finding-tag" style="background: #f3e8ff; color: #7e22ce;">UNSW-NB15 Đa Lớp (10 Lớp)</span><br>
+                        Đột phá nghiên cứu ấn tượng: <strong>Hybrid 1 GA</strong> đạt F1-macro <strong>55.50% với chỉ 6 ĐT</strong>, <strong>vượt trội hơn hẳn so với Baseline 42 ĐT (48.96%)</strong> nhờ loại bỏ được các chiều đặc trưng gây nhiễu phân loại.
+                    </div>
+                    <div class="finding-item">
+                        <span class="finding-tag" style="background: #fef3c7; color: #92400e;">CICDDoS2019 Đa Lớp (Multi-DDoS)</span><br>
+                        Phân loại chính xác các kịch bản tấn công DDoS biến thể (Syn, UDP, MSSQL, NetBIOS, LDAP). Tập đặc trưng rút gọn bảo toàn khả năng phân tách ranh giới giữa các loại luồng gói tin khuếch đại.
+                    </div>
                 </div>
             </div>
         </div>
@@ -1261,32 +1359,55 @@
 
     <!-- ==================== TAB 4: ADVANCED EVALUATION ==================== -->
     <div id="tab-advanced" class="tab-pane">
-        <!-- EXECUTIVE SUMMARY TAB 4 -->
+        <!-- EXECUTIVE SUMMARY & RESULT HIGHLIGHTS TAB 4 -->
         <div class="tab-summary-panel">
             <div class="tab-summary-header">
-                <span class="tab-summary-title">💡 TỔNG QUAN MỤC TIÊU & PHÁT HIỆN CHÍNH — KHẢ NĂNG KHÁI QUÁT HÓA & BÓC TÁCH ĐẶC TRƯNG</span>
+                <span class="tab-summary-title">📊 TỔNG QUAN MỤC TIÊU & TÓM TẮT KẾT QUẢ ĐA MÔ HÌNH & BÓC TÁCH ĐẶC TRƯNG</span>
                 <span class="badge-tag" style="background: #fef3c7; color: #92400e;">Cross-Classifiers &bull; Feature Ablation</span>
             </div>
-            <div class="summary-cards-grid">
-                <div class="summary-box">
-                    <div class="summary-box-icon">🎯</div>
-                    <div class="summary-box-title">Mục Tiêu Tab Này</div>
-                    <div class="summary-box-desc">Kiểm chứng <strong>tính bền vững của tập đặc trưng</strong> khi chuyển đổi sang các bộ phân loại ensemble mạnh hơn (RF, XGBoost) và phân tích độ phụ thuộc vào từng thuộc tính trọng yếu.</div>
+
+            <!-- 4 KPI RESULT CARDS -->
+            <div class="summary-kpi-grid">
+                <div class="summary-kpi-card info">
+                    <span class="kpi-label">F1 Cao Nhất (XGBoost)</span>
+                    <span class="kpi-val" style="color: #0284c7;">99.85%</span>
+                    <span class="kpi-desc">Tập đặc trưng đề xuất trên CICIDS2017</span>
                 </div>
-                <div class="summary-box">
-                    <div class="summary-box-icon">🔍</div>
-                    <div class="summary-box-title">Trọng Tâm Cần Quan Sát</div>
-                    <div class="summary-box-desc"><strong>Bảng 1:</strong> So sánh chéo DT vs RF vs XGBoost. <strong>Bảng 2:</strong> Xem mức độ sụt giảm hiệu năng khi bóc tách (loại bỏ) <code>Destination Port</code> và <code>URG Flag Count</code>.</div>
+                <div class="summary-kpi-card success">
+                    <span class="kpi-label">F1 Cao Nhất (Random Forest)</span>
+                    <span class="kpi-val" style="color: #16a34a;">99.70%</span>
+                    <span class="kpi-desc">Tập đặc trưng GA (6 ĐT) trên CICDDoS2019</span>
                 </div>
-                <div class="summary-box">
-                    <div class="summary-box-icon">📊</div>
-                    <div class="summary-box-title">Phát Hiện Cốt Lõi (Cross-Classifier)</div>
-                    <div class="summary-box-desc">Tập đặc trưng tối ưu giữ vững hoặc tăng hiệu năng khi sang <strong>XGBoost (F1 đạt 99.85% trên CICIDS2017)</strong> và <strong>Random Forest (99.70% trên CICDDoS2019)</strong>.</div>
+                <div class="summary-kpi-card warning">
+                    <span class="kpi-label">Sụt Giảm Khi Mất Cả 2 ĐT</span>
+                    <span class="kpi-val" style="color: #d97706;">-19.0% F1</span>
+                    <span class="kpi-desc">Bỏ Port & Flag: F1 sụt từ 99.08% &rarr; 80.08%</span>
                 </div>
-                <div class="summary-box">
-                    <div class="summary-box-icon">⚠️</div>
-                    <div class="summary-box-title">Cảnh Báo Từ Ablation Study</div>
-                    <div class="summary-box-desc">Khi bỏ cả 2 thuộc tính Port & Flag trên CICDDoS2019, <strong>F1 sụt giảm nghiêm trọng 15% &ndash; 19%</strong>, chứng minh các thuộc tính này giữ vai trò "huyết mạch" trong phân loại DDoS.</div>
+                <div class="summary-kpi-card purple">
+                    <span class="kpi-label">Độ Bền Vững (Generalization)</span>
+                    <span class="kpi-val" style="color: #9333ea; font-size: 20px;">Rất Cao</span>
+                    <span class="kpi-desc">Tập ĐT từ DT hoạt động xuất sắc trên RF & XGB</span>
+                </div>
+            </div>
+
+            <!-- DETAILED RESULT FINDINGS PER SCENARIO -->
+            <div class="summary-findings-box">
+                <div class="findings-title">
+                    <span>📌 Tóm Tắt Kết Luận & Phát Hiện Bóc Tách Trọng Yếu:</span>
+                </div>
+                <div class="summary-findings-grid">
+                    <div class="finding-item">
+                        <span class="finding-tag" style="background: #e0f2fe; color: #0369a1;">Khả Năng Khái Quát Hóa Ensemble</span><br>
+                        Tập đặc trưng rút gọn tìm được bởi Decision Tree khi chuyển giao sang <strong>Random Forest và XGBoost</strong> đều duy trì hiệu năng đỉnh cao (F1 đạt 99.85% trên CICIDS2017 và 99.70% trên CICDDoS2019), chứng minh đặc trưng chọn ra không bị overfit vào một mô hình đơn lẻ.
+                    </div>
+                    <div class="finding-item">
+                        <span class="finding-tag" style="background: #fef3c7; color: #92400e;">Bóc Tách Destination Port</span><br>
+                        Khi loại bỏ <code>Destination Port</code>, F1 sụt giảm ngay <strong>-15.2%</strong> (từ 99.08% xuống 83.88% trên DT và 86.81% trên XGBoost). Điều này chứng minh cổng đích là chữ ký quyết định trong nhận diện tấn công DDoS.
+                    </div>
+                    <div class="finding-item">
+                        <span class="finding-tag" style="background: #fee2e2; color: #b91c1c;">Bóc Tách Đồng Thời Cả Port & Flag</span><br>
+                        Khi loại bỏ cả <code>Destination Port</code> và <code>URG Flag Count</code>, F1 sụt dốc thảm hại <strong>-19.0%</strong> (từ 99.08% xuống 80.08%), khẳng định đây là cặp đặc trưng "sống còn" bắt buộc hệ thống NIDS phải bảo lưu.
+                    </div>
                 </div>
             </div>
         </div>
@@ -1503,32 +1624,59 @@
 
     <!-- ==================== TAB 5: GALLERY (CROSS-DATASET COMPARISON) ==================== -->
     <div id="tab-gallery" class="tab-pane">
-        <!-- EXECUTIVE SUMMARY TAB 5 -->
+        <!-- EXECUTIVE SUMMARY & RESULT HIGHLIGHTS TAB 5 -->
         <div class="tab-summary-panel">
             <div class="tab-summary-header">
-                <span class="tab-summary-title">💡 TỔNG QUAN MỤC TIÊU & PHÁT HIỆN CHÍNH — ĐỐI CHIẾU TRỰC QUAN HÓA & KHÁM PHÁ DỮ LIỆU</span>
+                <span class="tab-summary-title">📊 TỔNG QUAN MỤC TIÊU & TÓM TẮT ĐỐI CHIẾU TRỰC QUAN HÓA CHÉO</span>
                 <span class="badge-tag" style="background: #e0f2fe; color: #0369a1;">20 Biểu Đồ Độ Nét Cao &bull; Đối Đầu Chéo</span>
             </div>
-            <div class="summary-cards-grid">
-                <div class="summary-box">
-                    <div class="summary-box-icon">🎯</div>
-                    <div class="summary-box-title">Mục Tiêu Tab Này</div>
-                    <div class="summary-box-desc">Cung cấp <strong>bằng chứng trực quan đối chiếu chéo (Cross-Dataset)</strong> giữa các bộ dữ liệu nhằm giải thích bản chất toán học đằng sau các kết quả phân loại học máy.</div>
+
+            <!-- 4 KPI RESULT CARDS -->
+            <div class="summary-kpi-grid">
+                <div class="summary-kpi-card info">
+                    <span class="kpi-label">Số Biểu Đồ Đối Đầu</span>
+                    <span class="kpi-val" style="color: #0284c7;">20 Biểu Đồ</span>
+                    <span class="kpi-desc">12 Biểu đồ EDA + 8 Đường cong hội tụ</span>
                 </div>
-                <div class="summary-box">
-                    <div class="summary-box-icon">🔍</div>
-                    <div class="summary-box-title">Trọng Tâm Cần Quan Sát</div>
-                    <div class="summary-box-desc">Xem đối đầu 3 biểu đồ <strong>PCA 2D</strong> để thấy ranh giới cụm, <strong>Heatmap</strong> để thấy tính dư thừa, <strong>Mutual Info</strong> để thấy phân bổ thông tin, và <strong>Đường cong hội tụ</strong> của GA/PSO.</div>
+                <div class="summary-kpi-card success">
+                    <span class="kpi-label">Bộ Dữ Liệu Đối Chiếu</span>
+                    <span class="kpi-val" style="color: #16a34a;">3 Datasets Chuẩn</span>
+                    <span class="kpi-desc">CICIDS2017, CICDDoS2019, UNSW-NB15</span>
                 </div>
-                <div class="summary-box">
-                    <div class="summary-box-icon">🌌</div>
-                    <div class="summary-box-title">Insight Về Không Gian Dữ Liệu</div>
-                    <div class="summary-box-desc">PCA 2D lý giải hoàn hảo: CICDDoS2019 tách biệt rõ nét (F1 &gt; 99%), trong khi UNSW-NB15 các cụm tấn công tinh vi chồng lấn dày đặc lên lưu lượng thường (F1 ~ 86%).</div>
+                <div class="summary-kpi-card warning">
+                    <span class="kpi-label">Hội Tụ Tối Ưu GA / PSO</span>
+                    <span class="kpi-val" style="color: #d97706;">10 &ndash; 15 Thế Hệ</span>
+                    <span class="kpi-desc">Hạt hội tụ ổn định, thoát bẫy cục tiểu thành công</span>
                 </div>
-                <div class="summary-box">
-                    <div class="summary-box-icon">📈</div>
-                    <div class="summary-box-title">Insight Về Metaheuristics</div>
-                    <div class="summary-box-desc">Đường cong hội tụ chứng minh <strong>PSO v2 và Hybrid GA</strong> đạt điểm hội tụ ổn định chỉ sau 10 &ndash; 15 thế hệ, cơ chế tái tạo Reset giải quyết triệt để hiện tượng hội tụ sớm.</div>
+                <div class="summary-kpi-card purple">
+                    <span class="kpi-label">Insight Ranh Giới PCA</span>
+                    <span class="kpi-val" style="color: #9333ea; font-size: 20px;">Tách Biệt vs Chồng Lấn</span>
+                    <span class="kpi-desc">Giải thích trực quan sự chênh lệch F1 thực tế</span>
+                </div>
+            </div>
+
+            <!-- DETAILED RESULT FINDINGS PER VISUAL CATEGORY -->
+            <div class="summary-findings-box">
+                <div class="findings-title">
+                    <span>📌 Tóm Tắt Phát Hiện & Ý Nghĩa Học Thuật Qua 4 Lớp Biểu Đồ Đối Đầu:</span>
+                </div>
+                <div class="summary-findings-grid">
+                    <div class="finding-item">
+                        <span class="finding-tag" style="background: #e0f2fe; color: #0369a1;">Không Gian Biểu Diễn PCA 2D</span><br>
+                        Minh chứng trực giác: CICDDoS2019 có cụm DDoS tách biệt hoàn toàn ở góc riêng (giải thích F1 &gt; 99%), trong khi UNSW-NB15 các cụm tấn công tinh vi (Fuzzers, Analysis) chồng lấn dày đặc lên lưu lượng thường (giải thích F1 ~ 86%).
+                    </div>
+                    <div class="finding-item">
+                        <span class="finding-tag" style="background: #fef3c7; color: #92400e;">Ma Trận Tương Quan Heatmap</span><br>
+                        Hơn 40% cặp đặc trưng của CICIDS2017 và CICDDoS2019 có hệ số tương quan |r| &ge; 0.9 (các khối vuông đỏ đậm). Đây là cơ sở thực nghiệm khẳng định dữ liệu bị dư thừa chiều nặng nề, hoàn toàn có thể loại bỏ 80–95% số chiều.
+                    </div>
+                    <div class="finding-item">
+                        <span class="finding-tag" style="background: #f3e8ff; color: #7e22ce;">Thông Tin Hỗ Tương Mutual Info</span><br>
+                        Phản ánh phân bố thông tin: Trên CICDDoS2019, <code>Destination Port</code> và <code>URG Flag</code> áp đảo tuyệt đối; trong khi ở CICIDS2017 và UNSW-NB15, thông tin phân bổ đều hơn trên các thuộc tính luồng gói tin và thời gian.
+                    </div>
+                    <div class="finding-item">
+                        <span class="finding-tag" style="background: #f1f5f9; color: #475569;">Đường Cong Hội Tụ GA & PSO</span><br>
+                        Thể hiện rõ cơ chế tái khởi tạo (Reset) của PSO v2 giúp bầy hạt thoát khỏi cực tiểu địa phương ở thế hệ thứ 7–8, và thuật toán Hybrid GA v2 đạt trạng thái hội tụ Pareto bền vững chỉ sau 14 thế hệ.
+                    </div>
                 </div>
             </div>
         </div>
