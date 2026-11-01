@@ -156,6 +156,7 @@ def generate_dashboard():
 
     # Images
     img_arch = encode_img_base64(os.path.join(ROOT_DIR, "docs", "assets", "quy-trinh-nids.png"))
+    img_hybrid = encode_img_base64(os.path.join(ROOT_DIR, "docs", "assets", "co-che-hybrid-paper.png"))
 
     # 1. PCA 2D: Cross-dataset comparison
     pca_data = [
@@ -527,33 +528,79 @@ def generate_dashboard():
 
     <!-- ==================== TAB 1: OVERVIEW & ARCHITECTURE ==================== -->
     <div id="tab-overview" class="tab-pane active">
+        <!-- CARD 1: OVERALL PIPELINE (HÌNH 2.1 TRONG BÁO CÁO) -->
         <div class="card">
             <div class="card-header">
-                <span>SƠ ĐỒ KIẾN TRÚC TỔNG THỂ HỆ THỐNG NIDS (Chuẩn Học Thuật)</span>
-                <span class="badge-tag" style="background: #e0f2fe; color: #0369a1;">Hình 1.1 trong Báo cáo Word</span>
+                <span>1. SƠ ĐỒ QUY TRÌNH TỔNG THỂ HỆ THỐNG NIDS (Chuẩn Hóa 6 Giai Đoạn Nghiên Cứu)</span>
+                <span class="badge-tag" style="background: #e0f2fe; color: #0369a1;">Hình 2.1 trong Báo cáo Word</span>
             </div>
-            <div style="text-align: center; padding: 15px 0;">
-                <img src="{img_arch}" style="max-width: 920px; width: 100%; border-radius: 12px; border: 1px solid var(--card-border); cursor: pointer;" onclick="openModal(this.src)" alt="Sơ đồ kiến trúc NIDS">
-                <p style="font-size: 13px; color: var(--text-muted); margin-top: 10px; font-style: italic;">(Nhấp vào sơ đồ để phóng to toàn màn hình)</p>
+            <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 12px;">
+                Quy trình nghiên cứu khép kín theo đặc tả chuẩn mực mục 2.3.2 trong Báo cáo: từ khâu rà soát rò rỉ dữ liệu (Inbound artifact), tiền xử lý không thiên vị, khảo sát 7 phương án chọn đặc trưng đến đánh giá bóc tách (Ablation Study) và độ nhạy classifier.
+            </p>
+            <div style="text-align: center; padding: 10px 0;">
+                <img src="{img_arch}" style="max-width: 960px; width: 100%; border-radius: 12px; border: 1px solid var(--card-border); cursor: pointer; box-shadow: 0 4px 14px -2px rgba(0,0,0,0.06);" onclick="openModal(this.src)" alt="Sơ đồ kiến trúc NIDS 6 bước">
+                <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 8px; font-style: italic;">(Nhấp vào sơ đồ để phóng to toàn màn hình)</p>
             </div>
-            <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
-                <div style="background: #f8fafc; padding: 18px; border-radius: 10px; border-left: 4px solid #1e3a8a;">
-                    <div style="font-weight: 700; color: #1e3a8a; margin-bottom: 4px;">Nguyên tắc Không Rò Rỉ (No Data Leakage)</div>
-                    <div style="font-size: 13px; color: var(--text-muted);">Tất cả các bộ biến đổi (MinMaxScaler, LabelEncoder, Filter FS) chỉ fit trên tập Train. Tập Test hoàn toàn chỉ áp dụng transform dựa trên các tham số đã học.</div>
+            <div style="margin-top: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+                <div style="background: #fffbeb; padding: 18px; border-radius: 10px; border-left: 4px solid #f59e0b; border: 1px solid #fde68a;">
+                    <div style="font-weight: 700; color: #b45309; margin-bottom: 5px; font-size: 13.5px;">1. Rà Soát Artifact & Chống Rò Rỉ (EDA)</div>
+                    <div style="font-size: 12.5px; color: var(--text-dark); line-height: 1.5;">Phát hiện và loại bỏ triệt để biến rò rỉ dữ liệu <code>Inbound</code> trên CICDDoS2019 và kiểm tra lỗi nhãn trên CICIDS2017 trước khi đưa vào mô hình học máy.</div>
                 </div>
-                <div style="background: #f8fafc; padding: 18px; border-radius: 10px; border-left: 4px solid #15803d;">
-                    <div style="font-weight: 700; color: #15803d; margin-bottom: 4px;">Bảo toàn Phân tầng (Stratified Sampling)</div>
-                    <div style="font-size: 13px; color: var(--text-muted);">Mọi bước chia tách Train/Val và lấy mẫu phụ để tính hàm thích nghi cho GA/PSO bắt buộc áp dụng phân tầng nhãn nhằm bảo toàn tỷ lệ các lớp tấn công thiểu số.</div>
+                <div style="background: #eff6ff; padding: 18px; border-radius: 10px; border-left: 4px solid #3b82f6; border: 1px solid #bfdbfe;">
+                    <div style="font-weight: 700; color: #1e40af; margin-bottom: 5px; font-size: 13.5px;">2. Nguyên Tắc Thiết Kế Bất Khả Xâm Phạm</div>
+                    <div style="font-size: 12.5px; color: var(--text-dark); line-height: 1.5;">Tất cả các bộ biến đổi chỉ được <code>fit</code> trên tập Train. Mọi bước chia tách đều dùng phân tầng <code>stratify=y</code> nhằm bảo toàn tỷ lệ các lớp tấn công thiểu số.</div>
                 </div>
-                <div style="background: #f8fafc; padding: 18px; border-radius: 10px; border-left: 4px solid #3b82f6;">
-                    <div style="font-weight: 700; color: #3b82f6; margin-bottom: 4px;">Chiến lược Lai ghép Hybrid (Đề xuất)</div>
-                    <div style="font-size: 13px; color: var(--text-muted);">Filter lọc sơ bộ 50% đặc trưng có thứ hạng thấp &rarr; Wrapper (GA/PSO) tinh chọn tương tác phi tuyến trên không gian đã thu hẹp, tối ưu đa mục tiêu (F1 vs Số ĐT).</div>
+                <div style="background: #ecfdf5; padding: 18px; border-radius: 10px; border-left: 4px solid #10b981; border: 1px solid #a7f3d0;">
+                    <div style="font-weight: 700; color: #065f46; margin-bottom: 5px; font-size: 13.5px;">3. Khảo Sát Đối Chứng 7 Phương Án FS</div>
+                    <div style="font-size: 12.5px; color: var(--text-dark); line-height: 1.5;">Thực nghiệm chặt chẽ từ Full Baseline, Filter-MI, GA, PSO v2 (cải tiến chống kẹt hội tụ sớm) đến 2 chiến lược lai ghép Hybrid 1 và Hybrid 2.</div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- ==================== TAB 2: BINARY EXPERIMENTS ==================== -->
+        <!-- CARD 2: HYBRID MECHANISM (HÌNH 2.2 TRONG BÁO CÁO) -->
+        <div class="card" style="margin-top: 22px;">
+            <div class="card-header">
+                <span>2. SƠ ĐỒ CƠ CHẾ CHI TIẾT HAI PHƯƠNG PHÁP LAI GHÉP: HYBRID 1 & HYBRID 2</span>
+                <span class="badge-tag" style="background: #ecfdf5; color: #065f46;">Hình 2.2 trong Báo cáo Word</span>
+            </div>
+            <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 12px;">
+                Chi tiết cơ chế thuật toán của 2 phương pháp đề xuất: <strong>Hybrid 1</strong> (lọc sơ bộ không gian kết hợp tối ưu Pareto đa mục tiêu) và <strong>Hybrid 2</strong> (kết hợp thông tin tương hỗ phi tuyến và SHAP Explainable AI).
+            </p>
+            <div style="text-align: center; padding: 10px 0;">
+                <img src="{img_hybrid}" style="max-width: 960px; width: 100%; border-radius: 12px; border: 1px solid var(--card-border); cursor: pointer; box-shadow: 0 4px 14px -2px rgba(0,0,0,0.06);" onclick="openModal(this.src)" alt="Sơ đồ cơ chế Hybrid 1 và Hybrid 2">
+                <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 8px; font-style: italic;">(Nhấp vào sơ đồ để phóng to toàn màn hình)</p>
+            </div>
+            <div style="margin-top: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px;">
+                <div style="background: #f8fafc; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0;">
+                    <div style="font-weight: 700; color: #059669; font-size: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                        <span>⭐ Hybrid 1: Filter-MI + Metaheuristic (GA / PSO v2)</span>
+                    </div>
+                    <div style="font-size: 12.5px; color: var(--text-muted); line-height: 1.55;">
+                        <p style="margin-bottom: 6px;"><strong>Ý tưởng:</strong> Chạy 2 bước tuần tự nhằm giải quyết triệt để điểm yếu tính toán của Wrapper truyền thống.</p>
+                        <p style="margin-bottom: 6px;"><strong>Bước 1:</strong> Dùng Filter-MI giữ lại 50% đặc trưng có điểm thông tin cao nhất để thu hẹp không gian tìm kiếm từ 2<sup>D</sup> xuống 2<sup>0.5D</sup>.</p>
+                        <p style="margin-bottom: 6px;"><strong>Bước 2:</strong> Chạy GA hoặc PSO (đã cải tiến cơ chế đột biến/vận tốc) trên không gian đã thu hẹp. Hàm mục tiêu tối ưu đa mục tiêu có trọng số bù trừ:</p>
+                        <div style="background: #ffffff; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-family: monospace; font-size: 12px; color: #0f172a;">
+                            Fitness = w_acc &times; F1 + w_min &times; F1(lớp hiếm) &minus; w_feat &times; (k / n)
+                        </div>
+                    </div>
+                </div>
+                <div style="background: #f8fafc; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0;">
+                    <div style="font-weight: 700; color: #d97706; font-size: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                        <span>⚡ Hybrid 2: Mutual Information + SHAP + XGBoost</span>
+                    </div>
+                    <div style="font-size: 12.5px; color: var(--text-muted); line-height: 1.55;">
+                        <p style="margin-bottom: 6px;"><strong>Ý tưởng:</strong> Chọn đặc trưng một lượt (One-shot) không qua vòng lặp tìm kiếm, kết hợp tương quan thống kê và tầm quan trọng mô hình.</p>
+                        <p style="margin-bottom: 6px;"><strong>(1)</strong> Tính điểm MI trên tập con mẫu 20.000 dòng để nắm bắt quan hệ phi tuyến.</p>
+                        <p style="margin-bottom: 6px;"><strong>(2)</strong> Huấn luyện XGBoost (200 cây, max_depth=6) và tính giá trị mean|SHAP| bằng TreeExplainer để đo lường đóng góp thực tế.</p>
+                        <p style="margin-bottom: 6px;"><strong>(3)</strong> Chuẩn hóa Min-Max mỗi điểm về [0, 1] và tính điểm kết hợp có trọng số:</p>
+                        <div style="background: #ffffff; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-family: monospace; font-size: 12px; color: #0f172a;">
+                            Điểm kết hợp = w_mi &times; MI + w_shap &times; SHAP  &rarr;  Giữ Top 30% đặc trưng
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div><!-- ==================== TAB 2: BINARY EXPERIMENTS ==================== -->
     <div id="tab-binary" class="tab-pane">
         <!-- EXECUTIVE SUMMARY TAB 2 -->
         <div class="exec-summary-panel">
