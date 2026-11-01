@@ -1,0 +1,30 @@
+{
+  "n_features_selected": 13,
+  "n_features_total": 42,
+  "selected_features": [
+    "proto",
+    "service",
+    "sbytes",
+    "dbytes",
+    "sttl",
+    "sload",
+    "smean",
+    "dmean",
+    "ct_srv_src",
+    "ct_src_dport_ltm",
+    "ct_dst_sport_ltm",
+    "ct_dst_src_ltm",
+    "ct_srv_dst"
+  ],
+  "accuracy": 0.7373925083807025,
+  "precision_macro": 0.49242195362629354,
+  "recall_macro": 0.5573825215893697,
+  "f1_macro": 0.48594205569672744,
+  "train_time_sec": 0.8660159111022949,
+  "inference_time_sec": 0.024468660354614258,
+  "method": "hybrid2_mi_shap_xgboost",
+  "classifier": "dt",
+  "w_mi": 0.5,
+  "w_shap": 0.5,
+  "search_time_sec": 50.26919603347778
+}

@@ -1,0 +1,24 @@
+{
+  "n_features_selected": 6,
+  "n_features_total": 67,
+  "selected_features": [
+    "Destination Port",
+    "Bwd Packet Length Std",
+    "Fwd Packets/s",
+    "Packet Length Std",
+    "SYN Flag Count",
+    "URG Flag Count"
+  ],
+  "accuracy": 0.998921568627451,
+  "precision_macro": 0.9953629859350779,
+  "recall_macro": 0.9986799366211131,
+  "f1_macro": 0.9970143579435711,
+  "train_time_sec": 18.059894561767578,
+  "inference_time_sec": 0.9222507476806641,
+  "method": "ga",
+  "search_classifier": "dt",
+  "classifier": "rf",
+  "best_fitness_on_subsample": 0.8892778506090561,
+  "search_time_sec": 9.70425271987915,
+  "n_fitness_evaluations": 732
+}

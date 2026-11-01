@@ -1,0 +1,24 @@
+{
+  "n_features_selected": 7,
+  "n_features_total": 67,
+  "selected_features": [
+    "Total Length of Fwd Packets",
+    "Fwd Packet Length Min",
+    "Bwd IAT Min",
+    "Fwd PSH Flags",
+    "Fwd Packets/s",
+    "Subflow Fwd Packets",
+    "Init_Win_bytes_forward"
+  ],
+  "accuracy": 0.09821033868092692,
+  "precision_macro": 0.09021054475733895,
+  "recall_macro": 0.10912259853436324,
+  "f1_macro": 0.09876941582881354,
+  "train_time_sec": 1.1518745422363281,
+  "inference_time_sec": 0.16976428031921387,
+  "method": "ga",
+  "classifier": "dt",
+  "best_fitness_on_subsample": 0.744044145254591,
+  "search_time_sec": 15.89302682876587,
+  "n_fitness_evaluations": 752
+}

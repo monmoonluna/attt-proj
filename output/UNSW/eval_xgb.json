@@ -1,0 +1,52 @@
+{
+  "Full features": {
+    "n_features_selected": 42,
+    "n_features_total": 42,
+    "accuracy": 0.8682043433901764,
+    "precision_macro": 0.8902007608954909,
+    "recall_macro": 0.8561168901629063,
+    "f1_macro": 0.8623588512976155,
+    "train_time_sec": 2.9051733016967773,
+    "inference_time_sec": 0.11243677139282227
+  },
+  "fs_filter_rf [filter_mi]": {
+    "n_features_selected": 13,
+    "n_features_total": 42,
+    "accuracy": 0.8707671379293592,
+    "precision_macro": 0.8921973152965461,
+    "recall_macro": 0.8589086308579823,
+    "f1_macro": 0.865149677735227,
+    "train_time_sec": 1.5025925636291504,
+    "inference_time_sec": 0.10269999504089355
+  },
+  "fs_ga_rf [ga]": {
+    "n_features_selected": 4,
+    "n_features_total": 42,
+    "accuracy": 0.8331875819851333,
+    "precision_macro": 0.8605768815546615,
+    "recall_macro": 0.8185086055790194,
+    "f1_macro": 0.8240504678720415,
+    "train_time_sec": 1.0114145278930664,
+    "inference_time_sec": 0.09867095947265625
+  },
+  "fs_hybrid1_pso_rf [hybrid1_filtermi_pso]": {
+    "n_features_selected": 7,
+    "n_features_total": 42,
+    "accuracy": 0.8708643054948259,
+    "precision_macro": 0.8924990034607063,
+    "recall_macro": 0.85895961208716,
+    "f1_macro": 0.8652245430905638,
+    "train_time_sec": 1.3241856098175049,
+    "inference_time_sec": 0.10418057441711426
+  },
+  "fs_hybrid2_rf [hybrid2_mi_shap_xgboost]": {
+    "n_features_selected": 13,
+    "n_features_total": 42,
+    "accuracy": 0.8730505757178254,
+    "precision_macro": 0.8937936272589188,
+    "recall_macro": 0.8614417200664884,
+    "f1_macro": 0.867656308330134,
+    "train_time_sec": 1.7158401012420654,
+    "inference_time_sec": 0.11484169960021973
+  }
+}

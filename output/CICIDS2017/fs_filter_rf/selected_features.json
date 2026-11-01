@@ -1,0 +1,31 @@
+{
+  "n_features_selected": 16,
+  "n_features_total": 52,
+  "selected_features": [
+    "Destination Port",
+    "Total Length of Fwd Packets",
+    "Fwd Packet Length Max",
+    "Bwd Packet Length Max",
+    "Bwd Packet Length Mean",
+    "Bwd Packet Length Std",
+    "Fwd IAT Total",
+    "Fwd IAT Max",
+    "Max Packet Length",
+    "Packet Length Mean",
+    "Packet Length Std",
+    "Packet Length Variance",
+    "Average Packet Size",
+    "Subflow Fwd Bytes",
+    "Init_Win_bytes_forward",
+    "Init_Win_bytes_backward"
+  ],
+  "accuracy": 0.9989605608210776,
+  "precision_macro": 0.9976994776982797,
+  "recall_macro": 0.9986025739437413,
+  "f1_macro": 0.9981503534741948,
+  "train_time_sec": 233.8931860923767,
+  "inference_time_sec": 1.4189846515655518,
+  "method": "filter_mi",
+  "classifier": "rf",
+  "search_time_sec": 6.933283805847168
+}

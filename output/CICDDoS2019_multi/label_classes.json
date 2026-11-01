@@ -1,0 +1,26 @@
+{
+  "code_to_class": {
+    "0": "BENIGN",
+    "1": "LDAP",
+    "2": "MSSQL",
+    "3": "NetBIOS",
+    "4": "Portmap",
+    "5": "Syn",
+    "6": "UDP",
+    "7": "UDPLag",
+    "8": "Unknown"
+  },
+  "has_unknown_class": true,
+  "unknown_original_labels": [
+    "DrDoS_DNS",
+    "DrDoS_LDAP",
+    "DrDoS_MSSQL",
+    "DrDoS_NTP",
+    "DrDoS_NetBIOS",
+    "DrDoS_SNMP",
+    "DrDoS_UDP",
+    "TFTP",
+    "UDP-lag",
+    "WebDDoS"
+  ]
+}

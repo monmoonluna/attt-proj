@@ -1,0 +1,28 @@
+{
+  "n_features_selected": 13,
+  "n_features_total": 42,
+  "selected_features": [
+    "dur",
+    "dpkts",
+    "sbytes",
+    "dbytes",
+    "rate",
+    "sttl",
+    "dttl",
+    "sload",
+    "dload",
+    "dinpkt",
+    "smean",
+    "dmean",
+    "ct_state_ttl"
+  ],
+  "accuracy": 0.8671476461157266,
+  "precision_macro": 0.8889846626243161,
+  "recall_macro": 0.8550604357997811,
+  "f1_macro": 0.861261812973128,
+  "train_time_sec": 6.517180919647217,
+  "inference_time_sec": 0.2637026309967041,
+  "method": "filter_mi",
+  "classifier": "rf",
+  "search_time_sec": 5.764775037765503
+}

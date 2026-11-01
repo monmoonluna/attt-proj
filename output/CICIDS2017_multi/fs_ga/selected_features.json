@@ -1,0 +1,24 @@
+{
+  "n_features_selected": 7,
+  "n_features_total": 52,
+  "selected_features": [
+    "Destination Port",
+    "Total Length of Fwd Packets",
+    "Fwd Packet Length Mean",
+    "Bwd Packet Length Mean",
+    "Fwd IAT Std",
+    "Fwd IAT Min",
+    "ACK Flag Count"
+  ],
+  "accuracy": 0.9959414264120702,
+  "precision_macro": 0.9374685691930137,
+  "recall_macro": 0.9042570306007361,
+  "f1_macro": 0.9194328267785253,
+  "train_time_sec": 21.02912664413452,
+  "inference_time_sec": 0.11589479446411133,
+  "method": "ga",
+  "classifier": "dt",
+  "best_fitness_on_subsample": 0.8804275544215465,
+  "search_time_sec": 21.498828649520874,
+  "n_fitness_evaluations": 778
+}
