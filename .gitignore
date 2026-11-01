@@ -10,3 +10,10 @@ __pycache__/
 *.pyc
 ~$*
 .ipynb_checkpoints/
+
+# Cache & Temp files
+.DS_Store
+__pycache__/
+*.pyc
+~$*
+.ipynb_checkpoints/
