@@ -24,11 +24,15 @@ Giả sử một hệ thống mạng ghi lại nhiều kết nối. Mỗi kết 
 
 Ví dụ, CICIDS2017 trong báo cáo có 52 đặc trưng đầu vào. Thay vì luôn dùng cả 52 cột, GA chọn 5 cột cho bài toán nhị phân. Cần kiểm tra xem mô hình dùng 5 cột này mất bao nhiêu chất lượng và tiết kiệm bao nhiêu thời gian so với mô hình dùng đủ 52 cột.
 
+**Vì sao phải chọn đặc trưng khi đã có thể dùng tất cả cột?** Thu thập và xử lý nhiều cột làm tăng chi phí; một số cột gần trùng thông tin hoặc chỉ đúng trong môi trường thu thập. Một tập nhỏ có thể dễ triển khai và diễn giải hơn. Tuy vậy, bỏ cột cũng có thể bỏ mất tín hiệu của lớp hiếm. Vì thế đề tài phải đo cả chất lượng lẫn chi phí, không chỉ tìm tập ít cột nhất.
+
 ### 1.2. Đầu vào và đầu ra của toàn bộ hệ thống
 
 **Đầu vào** là các tệp CSV đã có đặc trưng thống kê của luồng và nhãn đúng. Báo cáo bắt đầu từ dữ liệu dạng bảng; phần trực tiếp bắt gói tin và trích đặc trưng từ mạng không phải phần được triển khai chính ở đây.
 
 **Đầu ra** gồm danh sách các cột được giữ, số cột còn lại, chất lượng phân loại trên test, thời gian tìm kiếm và thời gian huấn luyện hoặc suy luận được ghi nhận. Các biểu đồ EDA, đường hội tụ và thí nghiệm bỏ/thêm đặc trưng giúp giải thích độ tin cậy của kết quả.
+
+**Vì sao lưu cả danh sách cột và các độ đo?** Chỉ ghi “F1 = 0,99” chưa cho biết mô hình nhận những thông tin nào hoặc có thể tái sử dụng ra sao. Danh sách cột cho phép tạo đúng đầu vào khi đánh giá lại; các độ đo và thời gian cho biết lợi ích và tổn thất. Mô hình học với thứ tự cột nào thì dữ liệu dự đoán phải được sắp đúng thứ tự tương ứng.
 
 ### 1.3. Cách giải quyết tổng quan
 
@@ -40,6 +44,8 @@ Ví dụ, CICIDS2017 trong báo cáo có 52 đặc trưng đầu vào. Thay vì 
 Các nhánh FS là các phương án thay thế để so sánh. Không phải chạy MI rồi GA rồi PSO rồi cả hai Hybrid nối tiếp nhau. Chỉ riêng các phương pháp lai mới có các bước nối tiếp bên trong.
 
 **Kết luận tổng quan của báo cáo:** trên CICIDS2017 và UNSW-NB15, có thể giảm nhiều đặc trưng mà vẫn giữ chất lượng tương đối tốt. Trên CICDDoS2019, kết quả phụ thuộc mạnh vào dữ liệu, cặp đặc trưng đặc biệt và bộ phân loại. Không có một phương pháp tốt nhất cho mọi trường hợp.
+
+**Vì sao kiểm tra dữ liệu trước rồi mới so sánh thuật toán?** Nếu nhãn sai hoặc một cột tiết lộ đáp án theo cách thu thập, mọi phương pháp đều đang được so trên một bài toán sai lệch. Tốn thêm công kiểm tra đầu vào giúp tránh tối ưu một mô hình chỉ giỏi tận dụng lỗi dữ liệu. Phép so sánh cuối còn cần cùng cách chia dữ liệu và cùng bộ phân loại để giảm các nguyên nhân gây chênh lệch ngoài phương pháp FS.
 
 ## 2. Các khái niệm cần hiểu trước khi đọc pipeline
 
@@ -60,6 +66,8 @@ Một số kiểu tấn công xuất hiện trong báo cáo:
 | Web Attacks | Các tấn công vào ứng dụng web |
 | Bots | Lưu lượng liên quan đến máy hoặc chương trình bị điều khiển tự động |
 
+**Vì sao dùng luồng thay cho từng gói riêng lẻ?** Một gói có thể chưa đủ ngữ cảnh: phải xem nhiều gói mới biết tốc độ gửi, độ biến động độ dài hoặc nhịp thời gian của kết nối. Gom thành luồng cho phép tính các thống kê đó và tạo một dòng đầu vào có số cột cố định. Đổi lại, có thể phải chờ đủ gói hoặc hết khoảng quan sát mới tạo được đặc trưng, nên tốc độ dự đoán trên bảng chưa phản ánh toàn bộ độ trễ phát hiện thực tế.
+
 ### 2.2. Dòng dữ liệu, đặc trưng và nhãn
 
 Mỗi **dòng** là một mẫu quan sát. Mỗi **đặc trưng** là một cột đầu vào. **Nhãn** là đáp án cần dự đoán. Bảng dưới đây chỉ là ví dụ minh họa, không lấy từ bộ dữ liệu thực nghiệm:
@@ -73,6 +81,8 @@ Ta ký hiệu bảng đầu vào là `X`, cột đáp án là `y`. Không đưa 
 
 Các đặc trưng thường gặp gồm `Flow Duration` (thời lượng luồng), `Packet Length Mean` (độ dài gói trung bình), `Packet Length Std` (mức biến động độ dài), `IAT` (thời gian giữa các gói), `Destination Port` (cổng đích), `SYN Flag Count` và `URG Flag Count` (số lần xuất hiện các cờ TCP tương ứng). Đơn vị và cách tính cụ thể phải theo định nghĩa của bộ dữ liệu.
 
+**Vì sao tách X và y?** X là thông tin có sẵn khi cần dự đoán; y là đáp án chỉ biết trong dữ liệu đã gán nhãn. Cho y vào X giống như để đáp án trong đề thi. Chẳng hạn khi dùng `label` làm đáp án nhị phân của UNSW, cột `attack_cat` cũng phải được loại khỏi đầu vào vì tên nhóm tấn công có thể tiết lộ trực tiếp Normal hay Attack.
+
 ### 2.3. Nhị phân và đa lớp
 
 **Nhị phân** chỉ có hai đáp án: Normal và Attack. DoS, DDoS hay Bots đều được gom thành Attack.
@@ -80,6 +90,8 @@ Các đặc trưng thường gặp gồm `Flow Duration` (thời lượng luồn
 **Đa lớp** giữ các nhóm chi tiết, chẳng hạn Normal, DoS, DDoS, Bots. Bài toán khó hơn vì mô hình phải phân biệt cả những loại tấn công có biểu hiện gần nhau, và một số lớp có rất ít mẫu.
 
 Một mô hình làm tốt nhị phân chưa chắc làm tốt đa lớp. Nhận biết “đây là tấn công” thường dễ hơn gọi đúng loại tấn công.
+
+**Vì sao đánh giá cả hai chế độ?** Nhị phân phục vụ câu hỏi “có cần cảnh báo không?”, còn đa lớp cho biết “cảnh báo thuộc nhóm nào?”. Gom thành Attack giúp có nhiều mẫu cho một nhãn chung nhưng che đi việc mô hình có nhận ra từng loại tấn công hay không. Vì vậy không dùng F1 nhị phân cao để khẳng định mọi nhóm tấn công đều được nhận biết tốt.
 
 ### 2.4. Train, validation và test
 
@@ -95,6 +107,10 @@ Trong wrapper của báo cáo, lấy một phần từ train rồi chia 70% đ�
 
 Test phải được giữ độc lập. Nếu liên tục chọn phương pháp, chỉnh trọng số hoặc loại cột dựa trên test, test dần trở thành một phần của quá trình phát triển. Khi đó cần một tập kiểm tra độc lập mới để xác nhận kết luận.
 
+**Vì sao phải có validation bên trong train?** Nếu GA thử hàng trăm tập cột rồi chọn tập đạt điểm cao nhất ngay trên dữ liệu đã dùng huấn luyện, nó dễ chọn tập giúp cây ghi nhớ dữ liệu. Validation buộc mỗi ứng viên dự đoán các dòng chưa dùng để fit cây của ứng viên đó. Tuy nhiên, tìm kiếm nhiều lần trên cùng validation cũng có thể làm quá khớp validation; test riêng là lớp kiểm tra tiếp theo.
+
+**Vì sao huấn luyện lại trên toàn bộ train sau tìm kiếm?** Khi đã chốt cột, ta không cần giữ riêng validation cho mục đích chọn cột nữa, nên có thể dùng lại các dòng đó để mô hình cuối học từ nhiều dữ liệu hơn. Bước này chỉ gộp các phần của train; test vẫn độc lập.
+
 ### 2.5. Mất cân bằng, phân tầng và rò rỉ dữ liệu
 
 ![Minh họa NIDS](assets/pipeline_guide/44-leakage.png)
@@ -108,11 +124,43 @@ Test phải được giữ độc lập. Nếu liên tục chọn phương pháp
 
 **Rò rỉ dữ liệu** xảy ra khi quá trình học nhận thông tin mà đáng ra chưa được biết. Ví dụ tính min/max trên cả train và test trước khi đánh giá. Quy tắc đúng là chia dữ liệu trước, học mọi tham số tiền xử lý trên train rồi áp dụng cho test. Nếu đánh giá nghiêm ngặt trên validation, các phép biến đổi cần được học trong phần train của từng lần chia validation nữa.
 
+**Min/max ở đây được tính để chuẩn hóa giá trị của từng cột bằng MinMaxScaler.** `min` là giá trị nhỏ nhất và `max` là giá trị lớn nhất của một cột trong train. Mỗi cột có cặp min/max riêng; không lấy một cặp chung cho cả bảng và không tính trên cột nhãn.
+
+Trong dữ liệu mạng, các cột có đơn vị và độ lớn rất khác nhau. Một cột có thể là thời lượng tính bằng microsecond với giá trị hàng triệu; cột khác là số cờ SYN chỉ từ 0 đến vài đơn vị. Số lớn hơn không có nghĩa đặc trưng quan trọng hơn. Chuẩn hóa đổi thang biểu diễn để các cột có khoảng giá trị tương đương, hữu ích với các thuật toán dựa vào khoảng cách hoặc nhạy với thang đo.
+
+Công thức cho một cột không hằng:
+
+`x_chuẩn_hóa = (x − min_train) / (max_train − min_train)`.
+
+Ví dụ minh họa: cột thời lượng trong train có các giá trị 10, 30, 50. Ta học được `min_train = 10`, `max_train = 50`:
+
+| Dữ liệu | Giá trị gốc | Phép tính bằng tham số train | Giá trị sau chuẩn hóa |
+|:---|---:|:---|---:|
+| Train | 10 | (10 − 10) / 40 | 0,00 |
+| Train | 30 | (30 − 10) / 40 | 0,50 |
+| Train | 50 | (50 − 10) / 40 | 1,00 |
+| Test | 40 | (40 − 10) / 40 | 0,75 |
+| Test | 70 | (70 − 10) / 40 | 1,50 |
+
+Giá trị test bằng 70 trở thành 1,50 là bình thường khi không bật cắt ngưỡng: nó lớn hơn cực đại đã gặp trong train. Không cần tính lại min/max test để ép nó về [0, 1]. Cột hằng có `max = min` cần được xử lý riêng để tránh chia cho 0; pipeline có bước loại các cột gần hằng trên train.
+
+**Vì sao chỉ tính trên train?** Khi triển khai thật, ta chưa biết các luồng mạng tương lai lớn hoặc nhỏ đến đâu. Ta chỉ có thể lưu tham số từ dữ liệu đã học và dùng chúng cho các luồng mới. Test phải mô phỏng tình huống đó. Nếu dùng cả test để biết trước cực trị, cách biểu diễn train đã phụ thuộc thông tin từ dữ liệu đáng ra chưa được thấy. Đây là rò rỉ dù chưa dùng nhãn test.
+
+Ví dụ, nếu nhìn thấy giá trị test 70 rồi đổi cực đại từ 50 thành 70, giá trị train 30 sẽ được đổi thành `(30 − 10) / (70 − 10) ≈ 0,3333`, thay vì 0,50. Như vậy chính dữ liệu train cũng đã được biến đổi dựa vào test. Nếu tính min/max riêng cho từng tập thì lại mất sự nhất quán: cùng một giá trị gốc có thể được biểu diễn bằng các số khác nhau giữa train và test.
+
+Hai thao tác thường gặp trong code là `fit` và `transform`: **fit** học và lưu min/max từ train; **transform** dùng min/max đã lưu để đổi giá trị. Trình tự là `fit_transform(X_train)` rồi `transform(X_test)`, không gọi `fit_transform(X_test)`.
+
+**Trong báo cáo này, chuẩn hóa có bắt buộc với DT, RF và XGBoost không?** Các mô hình cây chia theo ngưỡng trên từng cột, nên thường ít nhạy với thang đo và không bắt buộc phải MinMax như các phương pháp dựa vào khoảng cách. Phép đổi tuyến tính tăng giữ thứ tự các giá trị; chẳng hạn ngưỡng gốc 30 tương ứng ngưỡng chuẩn hóa 0,50 trong ví dụ. Pipeline dùng MinMax để thống nhất cách biểu diễn, nhưng không nên kết luận rằng riêng bước này chắc chắn làm F1 tăng hoặc rằng cột có số lớn sẽ lấn át các cột khác trong mô hình cây.
+
+Chuẩn hóa cũng không giải quyết mất cân bằng nhãn: nó đổi giá trị trong cột, không đổi số lượng mẫu Normal và Attack. Mất cân bằng, phân tầng và chuẩn hóa là các vấn đề khác nhau trong pipeline.
+
 ### 2.6. Quá khớp và lệch phân phối
 
 **Quá khớp** là học quá sát các chi tiết riêng của dữ liệu huấn luyện, nên gặp dữ liệu mới dự đoán kém. Giảm đặc trưng có thể giúp nhưng cũng có thể làm mất tín hiệu cần thiết.
 
 **Lệch phân phối train–test** nghĩa là dữ liệu lúc kiểm tra khác dữ liệu lúc học. CICDDoS2019 là ví dụ rõ: test chứa những loại tấn công không có ở train. Vì vậy tập cột tốt trên validation tách từ train chưa chắc tốt trên test.
+
+**Vì sao chia ngẫu nhiên chưa đủ để mô phỏng mọi tình huống thực tế?** Khi chia ngẫu nhiên, các dòng trong train và test có thể đến từ cùng đợt thu thập và cùng cấu hình mạng. Mô hình dễ gặp lại các mẫu rất giống nhau. Chia theo thời gian, máy hoặc nhóm tấn công đặt câu hỏi khó hơn: mô hình có dùng được ở điều kiện mới hay không? Đây là các thiết kế đánh giá khác nhau, không nên so điểm như thể chúng cùng mức độ khó.
 
 ## 3. Các độ đo và cách đọc con số
 
@@ -146,6 +194,8 @@ FAR/FPR   = FP / (FP + TN)
 
 Precision trả lời “trong các cảnh báo tấn công, bao nhiêu là đúng?”. Recall, cũng gọi là Detection Rate khi xét lớp Attack, trả lời “trong các tấn công thực, phát hiện được bao nhiêu?”. FAR/FPR đo tỷ lệ lưu lượng bình thường bị báo nhầm. Cần kiểm tra lớp dương và cách lấy trung bình trước khi gọi một giá trị Recall trong JSON là Detection Rate.
 
+**Vì sao cần xem cả Precision và Recall?** Một mô hình báo Attack cho mọi luồng có thể bắt được mọi tấn công, tức Recall cao, nhưng tạo rất nhiều cảnh báo nhầm. Mô hình chỉ cảnh báo những trường hợp quá rõ có thể có Precision cao nhưng bỏ sót nhiều tấn công. Ma trận nhầm lẫn chỉ ra lỗi nằm ở phía nào; F1 giúp phối hợp Precision và Recall nhưng không thay thế hoàn toàn việc xem FN và FP.
+
 ### 3.2. Vì sao dùng F1-macro
 
 Tính F1 cho từng lớp rồi lấy trung bình đều:
@@ -158,6 +208,8 @@ Ví dụ minh họa: ba lớp có F1 lần lượt là 0,99; 0,90; 0,10 thì F1-
 
 F1 `0,9975` tương đương `99,75%`. Tăng từ `0,8553` lên `0,8658` là tăng **1,05 điểm phần trăm**, không phải tăng 10,5 điểm.
 
+**Vì sao không chỉ dùng Accuracy?** Giả sử có 990 Normal và 10 Attack. Mô hình luôn đoán Normal đúng 990/1.000 dòng, Accuracy 99%, nhưng Recall của Attack bằng 0. F1-macro dành trọng số ngang nhau cho hai lớp, nên thể hiện nhược điểm này rõ hơn. Với nhiều lớp, vẫn cần xem F1 từng lớp vì một giá trị trung bình chưa chỉ ra tên lớp đang bị bỏ sót.
+
 ### 3.3. Số chiều và thời gian
 
 Gọi `D` là số cột đầu vào sau tiền xử lý, `k` là số cột giữ lại:
@@ -167,6 +219,8 @@ Gọi `D` là số cột đầu vào sau tiền xử lý, `k` là số cột gi�
 Ví dụ 52 xuống 5 là giảm khoảng 90,38%. Giảm chiều không phải xóa 90% số dòng và cũng không có nghĩa kích thước tệp hay mọi loại thời gian đều giảm đúng tỷ lệ đó.
 
 Cần phân biệt **T_FS** (tìm đặc trưng), **T_train** (huấn luyện mô hình cuối) và **T_inference** (dự đoán). Bảng chính của báo cáo đưa thời gian huấn luyện, không phải tổng chi phí pipeline. Wrapper có thể tốn nhiều phút tìm kiếm để đổi lấy một mô hình huấn luyện nhanh hơn. Báo cáo chưa cung cấp đầy đủ DR, FAR, F1-weighted và thời gian suy luận cho từng phương án, nên tài liệu này không tự bổ sung các con số đó.
+
+**Vì sao tách ba loại thời gian?** Một phương pháp có thể mất 30 phút tìm cột nhưng mô hình cuối chỉ mất 1 giây huấn luyện. Nếu chỉ chạy một lần, chi phí tìm kiếm là đáng kể; nếu dùng mô hình để dự đoán nhiều lần, chi phí suy luận có thể quan trọng hơn. Cần chọn cách so phù hợp với tình huống sử dụng, và phải đo thực tế thay vì suy ra rằng giảm 80% cột chắc chắn nhanh hơn 80%.
 
 ## 4. Dữ liệu sử dụng
 
@@ -184,6 +238,8 @@ Cần phân biệt **T_FS** (tìm đặc trưng), **T_train** (huấn luyện m�
 
 Số đặc trưng này là của phiên bản và quy trình trong báo cáo. Không áp dụng mặc định cho mọi bản tải về có cùng tên bộ dữ liệu. NSL-KDD có trong phạm vi dự án nhưng không nằm trong ba bộ thực nghiệm chính của báo cáo Word này.
 
+**Vì sao thử trên nhiều bộ dữ liệu?** Một thuật toán có thể phù hợp với kiểu lưu lượng, nhãn hoặc cách chia của một bộ nhưng kém ở bộ khác. Ba bộ khác nhau giúp quan sát giới hạn đó. Không gộp điểm của chúng thành một cuộc thi đơn giản: số lớp, độ mất cân bằng và mức khác nhau giữa train/test đều làm thay đổi độ khó.
+
 ### 4.2. CICIDS2017
 
 Báo cáo dùng bản Kaggle “Cleaned & Preprocessed”, có 2.520.751 dòng ban đầu, 52 đặc trưng số và nhãn `Attack Type`. Bảy lớp là Normal Traffic, DoS, DDoS, Port Scanning, Brute Force, Web Attacks và Bots.
@@ -192,11 +248,15 @@ Tỷ lệ nhị phân khoảng 83,1% Normal và 16,9% Attack. Chia ngẫu nhiên
 
 Tổng train và test trong bảng là 2.520.590, ít hơn dữ liệu đầu vào 161 dòng. Đây là hai giai đoạn đếm khác nhau; không nên coi số mẫu EDA và số mẫu cuối là cùng một đại lượng.
 
+**Vì sao phải ghi rõ phiên bản CICIDS2017?** Bản đã làm sạch có thể khác bản gốc về dòng, cột và cách gộp nhãn. Nếu chỉ ghi tên CICIDS2017, người chạy lại có thể tải một bản khác và không tái lập được kết quả. Cần lưu nguồn, phiên bản và các bước xử lý, thay vì xem mọi tệp mang cùng tên là tương đương.
+
 ### 4.3. UNSW-NB15
 
 Hai tệp train và test có sẵn; mỗi tệp có 45 cột. Loại `id` và các cột nhãn còn 42 đặc trưng, gồm ba cột dạng phân loại `proto`, `service`, `state`.
 
 Nhãn đa lớp gồm Normal và chín nhóm: Fuzzers, Analysis, Backdoors, DoS, Exploits, Generic, Reconnaissance, Shellcode, Worms. Train có khoảng 31,9% Normal và 68,1% Attack. Bài toán đa lớp khó hơn rõ rệt so với CICIDS2017 qua F1-macro.
+
+**Vì sao giữ train/test có sẵn của UNSW?** Giữ phép chia giúp các phương pháp trong thí nghiệm dùng cùng điều kiện và tránh vô tình biến bài toán thành một phép chia dễ hơn. Các cột chữ cần được mã hóa vì mô hình nhận ma trận số. Nếu tự gộp rồi chia lại, kết quả trả lời một thiết kế thí nghiệm khác và phải được ghi rõ.
 
 ### 4.4. CICDDoS2019
 
@@ -205,6 +265,8 @@ Bản dùng trong báo cáo có 88 cột thô, gộp từ 7 tệp train và 10 t
 Sau loại định danh, 12 cột phương sai gần 0 và `Inbound`, còn 67 đặc trưng. DNS, NTP, SNMP, TFTP có ở test nhưng chưa có ở train; Portmap chỉ có ở train.
 
 Với nhị phân, các loại tấn công mới vẫn thuộc nhãn Attack đã biết. Với đa lớp, mô hình chưa học tên các lớp mới, nên không thể kỳ vọng bộ phân loại có giám sát thông thường tự gọi đúng tên chúng. Đây là lý do cần đọc hai bài toán riêng biệt.
+
+**Vì sao loại tấn công mới ảnh hưởng mạnh đến cách diễn giải?** Trong nhị phân, mô hình đã học nhãn Attack nên vẫn có cơ hội nhận biết hành vi chung của loại mới. Trong đa lớp, tên lớp mới chưa từng có trong dữ liệu học, nên mô hình phân loại thông thường chỉ có thể dự đoán trong các lớp đã học. Điểm thấp khi ấy không chỉ do tập đặc trưng yếu mà còn do giới hạn của thiết kế học có giám sát.
 
 ## 5. Phân tích khám phá dữ liệu trước khi huấn luyện
 
@@ -221,11 +283,15 @@ EDA là bước xem dữ liệu có cấu trúc gì và có vấn đề gì. Đ�
 
 Báo cáo từng gặp lỗi: chương trình chỉ so khớp chính xác `normal` hoặc `benign`, trong khi nhãn là `Normal Traffic`. Tất cả các dòng bị đổi thành Attack. Khi ấy F1 và Accuracy đều 1,0000 vì chỉ còn một đáp án. Sau khi sửa nhận diện chuỗi con, baseline CICIDS2017 còn F1-macro 0,9975. Đây là lý do phải kiểm tra nhãn trước khi tin một kết quả rất cao.
 
+**Vì sao kiểm tra kiểu dữ liệu và đếm từng nhãn?** Một cột số bị đọc thành chữ có thể không được xử lý như dự định; khoảng trắng trong nhãn có thể tạo thêm một lớp giả. Đếm nhãn trước và sau ánh xạ giúp phát hiện mất lớp hoặc gộp sai. Không kiểm tra bước này thì ngay cả F1 hoàn hảo cũng có thể chỉ là hậu quả của một lỗi gán nhãn như trường hợp CICIDS2017.
+
 ### 5.2. Tương quan giữa các cột
 
 Hệ số tương quan `r` mô tả quan hệ tuyến tính; `|r|` gần 1 cho thấy hai cột biến thiên gần nhau. Báo cáo đếm các cặp có `|r| > 0,95`: CICIDS2017 có 23 cặp, UNSW có 13, CICDDoS2019 có 48.
 
 Các cột như độ dài gói trung bình, độ lệch chuẩn và phương sai có thể chia sẻ thông tin. Giữ nhiều cột gần trùng thông tin làm tăng chi phí mà chưa chắc giúp phân loại. Tuy nhiên tương quan không phải phép thử đầy đủ cho mọi quan hệ phi tuyến.
+
+**Vì sao xem các cặp tương quan cao?** Nếu hai cột biến đổi gần giống nhau, chúng có thể cung cấp thông tin dư thừa; đây là cơ hội giảm chiều. Tuy nhiên, không xóa máy móc mọi cột tương quan: hai cột gần giống trên đa số mẫu vẫn có thể khác ở những mẫu tấn công hiếm. Ngưỡng 0,95 là ngưỡng khảo sát trong báo cáo, không phải ranh giới tự nhiên giữa “có ích” và “vô ích”.
 
 ### 5.3. Mutual Information và entropy nhãn
 
@@ -239,11 +305,15 @@ Các cột như độ dài gói trung bình, độ lệch chuẩn và phương s
 
 MI bằng 80,3% entropy không có nghĩa Accuracy là 80,3%. Đây là hai đại lượng khác nhau. Ngưỡng MI vượt 80% entropy trong script là tín hiệu cần xem xét, không phải bằng chứng tự động rằng dữ liệu rò rỉ.
 
+**Vì sao so MI với entropy của nhãn?** Cùng một giá trị MI có ý nghĩa khác nhau khi nhãn gần cân bằng hoặc gần như chỉ có một lớp. So với entropy giúp đặt lượng thông tin mà cột cung cấp vào bối cảnh mức bất định ban đầu của nhãn. Một cột làm giảm gần hết bất định đáng được kiểm tra: nó có thể phản ánh hành vi thật, một bản sao của nhãn hoặc cách dựng thí nghiệm. Chỉ nhìn điểm MI chưa phân biệt được ba khả năng đó.
+
 ### 5.4. PCA dùng để quan sát
 
 PCA tạo các trục mới là tổ hợp các cột cũ để giữ nhiều phương sai và vẽ dữ liệu trong hai chiều. Tỷ lệ 99,7% trong bảng là tỷ lệ phương sai được hai trục biểu diễn, không phải tỷ lệ phân loại đúng.
 
 PCA ở đây phục vụ EDA. FS giữ cột gốc, còn PCA tạo cột mới. Hai kỹ thuật đều có thể giảm chiều nhưng không cùng cách làm. Tỷ lệ phương sai còn phụ thuộc thang đo đầu vào, nên không dùng riêng con số PCA để kết luận dữ liệu chỉ cần hai đặc trưng cho phân loại.
+
+**Vì sao vẽ PCA hai chiều?** Con người khó nhìn trực tiếp 42 hay 67 chiều, nên hai trục giúp quan sát cụm, điểm lệch và mức chồng lấn. PCA ưu tiên phương sai của X, không tối ưu phân biệt y. Một lớp hiếm có thể nằm ở hướng ít phương sai và bị mất khi chiếu xuống hai chiều. Vì vậy hình PCA chỉ giúp đặt câu hỏi, không thay thế việc đánh giá mô hình.
 
 ### 5.5. Rà soát artifact và ablation
 
@@ -259,6 +329,8 @@ Trên CICDDoS2019, `Inbound` chiếm 77,3% độ quan trọng trong hai tập c�
 
 Ngược lại, `Average Packet Size` có MI cao nhưng độ dài gói khác nhau theo loại giao thức là lời giải thích hợp lý, nên được giữ. Audit CICIDS2017 và UNSW cũng thấy các cột quan trọng nhưng bỏ chúng không làm F1 giảm đáng kể: `Bwd Packet Length Std` cho 0,9943 → 0,9943; `sttl` cho 0,8631 → 0,8656. Các phép thử này không phát hiện vấn đề tương tự Inbound; chúng chưa chứng minh dữ liệu hoàn toàn không có artifact.
 
+**Vì sao xem độ quan trọng rồi còn phải ablation?** Độ quan trọng cho biết cây đã dùng cột nào nhiều; ablation hỏi nếu không có cột đó, mô hình có học được bằng các cột khác không. Hai câu hỏi khác nhau. Nếu bỏ cột mà F1 không giảm, tín hiệu có thể được thay thế; nếu giảm mạnh, ta biết mô hình phụ thuộc cột nhưng vẫn chưa biết cột đó hợp lệ hay artifact. Cần đọc ý nghĩa và phân bố cột cùng kết quả phép thử.
+
 ## 6. Tiền xử lý dữ liệu từng bước
 
 ![Minh họa NIDS](assets/pipeline_guide/37-data-preprocessing.png)
@@ -272,11 +344,15 @@ Phần này giải thích mục đích các thao tác trong báo cáo và trình
 
 Đọc bảng, bỏ khoảng trắng đầu/cuối tên cột. Ví dụ `" Destination Port"` trở thành `"Destination Port"`, tránh xem cùng một cột là hai tên khác nhau.
 
+**Vì sao thao tác nhỏ này cần làm trước?** Các lệnh chọn hoặc loại cột dùng tên chính xác. Nếu `Label` và ` Label` bị coi là khác nhau, chương trình có thể không tìm được nhãn hoặc không loại được cột cần loại. Chuẩn hóa tên giúp các bước sau thực hiện đúng cấu hình; sau đó vẫn phải kiểm tra có tên cột bị trùng sau khi bỏ khoảng trắng hay không.
+
 ### 6.2. Xác định các phần dữ liệu
 
 Với UNSW và CICDDoS2019, dùng tệp train/test có sẵn. Với một tệp CICIDS2017, nguyên tắc đúng là xác định nhãn, chia phân tầng 80/20 trước khi học tham số tiền xử lý.
 
 Giữ riêng nhãn `y` và đặc trưng `X`. Các nhãn hoặc cột định danh không được vô tình trở thành đầu vào.
+
+**Vì sao chia trước mọi bước có học tham số?** Ngay cả bước không nhìn nhãn, như tìm trung vị hoặc loại cột gần hằng, vẫn học đặc điểm phân bố dữ liệu. Học nó trên cả test làm test tác động vào cách xây dựng mô hình. Với việc chia train thành phần fit và validation, nguyên tắc tương tự áp dụng trong từng lần đánh giá nghiêm ngặt. Các thao tác định trước không cần học, như bỏ khoảng trắng tên cột, khác với việc ước lượng tham số từ dữ liệu.
 
 ### 6.3. Xử lý giá trị thiếu và vô cực
 
@@ -284,11 +360,21 @@ Một phép tính như tốc độ trên thời lượng bằng 0 có thể tạ
 
 Báo cáo dùng trung vị: sắp các giá trị và lấy giá trị giữa, ít bị kéo lệch bởi giá trị cực lớn hơn trung bình. Cách đúng là lưu trung vị từng cột của train và dùng chính các giá trị đó cho test. Không tính lại trung vị trên test.
 
+**Vì sao không để nguyên NaN và vô cực?** Chúng có thể làm thuật toán lỗi hoặc khiến các phép tính không còn ý nghĩa. Ví dụ tốc độ bằng số byte chia thời lượng có thể thành vô cực nếu thời lượng bằng 0. Chuyển vô cực thành NaN cho phép đưa chúng vào cùng quy trình xử lý thiếu, nhưng vẫn cần kiểm tra nguyên nhân thay vì xem mọi vô cực là lỗi ngẫu nhiên.
+
+**Vì sao dùng trung vị thay vì trung bình hoặc xóa hết dòng thiếu?** Với các giá trị 10, 12, 14, 16, 10.000, trung vị là 14 còn trung bình là 2.010,4. Dữ liệu mạng có giá trị rất lệch, nên trung vị ít bị một giá trị lớn kéo đi. Xóa mọi dòng thiếu lại có thể làm mất nhiều mẫu hoặc loại mất lớp hiếm. Điền trung vị cũng có nhược điểm: tạo nhiều giá trị giống nhau và không khôi phục được thông tin thật đã mất. Nếu một cột thiếu quá nhiều hoặc thiếu gắn với một lớp cụ thể thì cần phân tích riêng; không mặc định điền trung vị là luôn đúng.
+
 ### 6.4. Dòng trùng, cột gần hằng và cột định danh
 
 Dòng trùng có thể làm một mẫu bị đếm nhiều lần. Cột gần hằng có rất ít biến thiên, thường ít giúp phân biệt lớp. Danh sách cột gần hằng cần được xác định trên train rồi áp dụng thống nhất.
 
 Loại các cột như Flow ID, địa chỉ IP, cổng nguồn, Timestamp theo cấu hình CICDDoS2019 và `id` của UNSW. Các cột này có thể khiến mô hình ghi nhớ môi trường. `Destination Port` vẫn được giữ trong thực nghiệm, nhưng ảnh hưởng của nó được kiểm tra riêng. `Inbound` bị loại sau phân tích chất lượng dữ liệu.
+
+**Vì sao dòng trùng có thể gây vấn đề?** Một mẫu lặp lại nhiều lần làm mô hình ưu tiên nó nhiều hơn. Nếu các bản sao nằm ở cả train và test, điểm có thể cao vì gặp lại dữ liệu gần như đã biết. Tuy nhiên, các luồng giống nhau có thể xuất hiện thật trong tấn công; loại trùng cũng làm thay đổi phân bố, nên cần ghi rõ quy tắc thay vì xóa chỉ vì thấy giống.
+
+**Vì sao bỏ cột gần hằng?** Cột có cùng một giá trị ở mọi dòng train không giúp chia các dòng train thành nhóm khác nhau. Giữ nó tăng số chiều tìm kiếm mà không đem lại khả năng phân biệt trên train. “Gần hằng” cần cẩn thận hơn: biến thiên ít có thể liên quan lớp hiếm, và phương sai còn phụ thuộc đơn vị đo.
+
+**Vì sao bỏ IP, ID hoặc Timestamp?** Mô hình có thể ghi nhớ máy nào hoặc đợt thu thập nào thường mang nhãn Attack, thay vì học hành vi có thể dùng ở môi trường khác. Không phải các cột này vô dụng trong mọi NIDS; việc loại chúng phụ thuộc mục tiêu tổng quát hóa của nghiên cứu. Cổng đích cũng cần xem xét tương tự, vì vừa có ý nghĩa dịch vụ vừa có thể gắn với cấu hình thí nghiệm.
 
 ### 6.5. Chuyển nhãn
 
@@ -296,11 +382,17 @@ Nhị phân: nhãn chứa `normal` hoặc `benign`, không phân biệt hoa thư
 
 Đa lớp: giữ tên nhóm tấn công, sau đó mã hóa thành số. Số 0, 1, 2 chỉ là mã; không mang ý nghĩa lớp nào “lớn hơn”. Nhãn chỉ có ở test được ánh xạ thành mã `Unknown` riêng, lưu trong `label_classes.json`. Ánh xạ này giúp chấm điểm rõ ràng, không tự tạo cho mô hình khả năng phát hiện Unknown.
 
+**Vì sao cần quy tắc nhãn rõ ràng?** Tên lớp giữa các bộ dữ liệu khác nhau; chương trình không tự hiểu `Normal Traffic` đồng nghĩa bình thường nếu quy tắc viết sai. Sau ánh xạ phải kiểm tra số mẫu từng lớp với nhãn gốc. Với đa lớp, gán nhãn lạ thành Unknown giúp tránh âm thầm gọi chúng là một lớp đã biết, nhưng không dạy mô hình dự đoán Unknown. Muốn làm được điều đó cần thiết kế phát hiện loại chưa biết riêng.
+
 ### 6.6. Mã hóa cột phân loại
 
 UNSW có `proto`, `service`, `state` dạng chữ. Label Encoding đổi mỗi giá trị thành một mã số, học ánh xạ từ train rồi áp dụng cho test. Ví dụ minh họa `tcp → 0`, `udp → 1`.
 
 Các mã là quy ước, không có khoảng cách tự nhiên. Cây vẫn có thể tạo ngưỡng trên các mã này, nên cách mã hóa có thể ảnh hưởng kết quả. Đây là cách báo cáo sử dụng, không phải lựa chọn duy nhất cho dữ liệu phân loại.
+
+**Vì sao chuyển chữ thành số?** Các bộ phân loại trong pipeline cần đầu vào số. Bộ mã hóa lưu quy ước để cùng một giao thức có cùng mã ở train và test. Nếu mã hóa hai tập riêng, `tcp` có thể thành 0 ở train nhưng 1 ở test, làm sai ý nghĩa đầu vào.
+
+**Vì sao không hiểu các mã như độ lớn?** Nếu tcp=0, udp=1, icmp=2 thì icmp không “gấp đôi” udp. Đây chỉ là tên viết bằng số. One-hot encoding là một cách khác, tạo cột 0/1 cho từng giá trị nhưng làm tăng số chiều; báo cáo chọn Label Encoding, nên cần ghi nhận hạn chế về thứ tự mã. Giá trị chữ mới ở test cũng cần có quy tắc xử lý đã định trước, không fit lại bộ mã hóa trên test.
 
 ### 6.7. Chuẩn hóa MinMax
 
@@ -308,11 +400,19 @@ Với từng cột, phép biến đổi là `x_mới = (x − min_train) / (max_
 
 Mục đích là thống nhất thang đo. Các mô hình cây thường ít cần chuẩn hóa hơn các mô hình dựa vào khoảng cách, nhưng pipeline báo cáo vẫn dùng MinMax. Tham số phải học từ train.
 
+**Vì sao cần nhắc lại min/max tại đúng bước này?** Đây là nơi pipeline thật sự đổi thang dữ liệu. Ví dụ train có thời lượng nhỏ nhất 10 và lớn nhất 50, giá trị 30 trở thành 0,50; test có giá trị 70 thì dùng cùng tham số và được 1,50. Cách tính và lý do tránh dùng test đã giải thích kỹ tại Mục 2.5.
+
+Cột có số lớn không mặc nhiên quan trọng hơn. MinMax hữu ích cho thuật toán nhạy với thang đo, nhưng các mô hình cây của báo cáo thường không bắt buộc cần nó. Cực trị train rất lớn có thể nén hầu hết giá trị còn lại vào một khoảng hẹp; vì vậy chuẩn hóa không thay thế kiểm tra ngoại lệ và không bảo đảm tăng F1.
+
 ### 6.8. Lưu dữ liệu và tham số
 
 Đầu ra tiền xử lý gồm `X_train`, `X_test`, `y_train`, `y_test`, danh sách cột, scaler và bộ mã hóa. Các phương án FS nhận cùng dữ liệu này để so sánh công bằng.
 
 SMOTE là kỹ thuật sinh mẫu cho lớp ít dữ liệu. Dù xuất hiện trong quy ước dự án và mã hỗ trợ, bảng thiết lập của báo cáo không xác nhận SMOTE đã được bật cho các kết quả chính; không nên kể nó như một bước đã chạy. Nếu dùng, chỉ áp dụng trên phần huấn luyện.
+
+**Vì sao không chỉ lưu mô hình cuối?** Khi có luồng mới, phải điền thiếu, mã hóa, chuẩn hóa và sắp cột đúng như lúc học. Thiếu các tham số này, cùng một mô hình có thể nhận đầu vào sai thang hoặc sai ý nghĩa mã. Lưu kèm tên cột và cấu hình giúp đánh giá lại mà không cần chạy lại tìm kiếm. Các tệp lớn và dữ liệu gốc vẫn phải tuân thủ `.gitignore`.
+
+**Vì sao nếu dùng SMOTE thì phải làm sau chia và chỉ trên phần fit?** Mẫu tổng hợp được tạo từ các mẫu hiện có. Nếu tạo trước khi chia, mẫu ở phần đánh giá có thể liên quan trực tiếp đến dữ liệu huấn luyện, làm điểm lạc quan. Validation và test cần giữ phân bố quan sát ban đầu để đánh giá có ý nghĩa. Báo cáo không xác nhận SMOTE được bật cho các bảng kết quả chính.
 
 ## 7. Các phương pháp chọn đặc trưng hoạt động thế nào
 
@@ -323,6 +423,8 @@ SMOTE là kỹ thuật sinh mẫu cho lớp ít dữ liệu. Dù xuất hiện t
 ### 7.1. Full features làm baseline
 
 Huấn luyện và đánh giá với toàn bộ `D` cột sau tiền xử lý. Đây là mốc để biết FS có ích hay không. Bảy phương án trong báo cáo gồm một baseline và sáu phương án FS.
+
+**Vì sao baseline cũng phải dùng cùng bộ phân loại và dữ liệu?** Nếu full dùng DT nhưng tập giảm chiều dùng RF, chênh lệch có thể do mô hình thay vì FS. Đối chứng phù hợp là cùng dữ liệu, cùng quy trình, cùng bộ phân loại, thay số cột. Bước đổi bộ phân loại sau đó là một thí nghiệm riêng.
 
 ### 7.2. Filter bằng Mutual Information
 
@@ -336,6 +438,10 @@ Lấy mẫu 20.000 dòng từ train, tính MI giữa mỗi cột và nhãn, sắ
 Ví dụ minh họa: ba cột A, B, C có MI lần lượt 0,30; 0,28; 0,05. Filter ưu tiên A và B. Nhưng A và B có thể chứa gần cùng thông tin, trong khi C có ích khi kết hợp với A. Chấm từng cột riêng không đánh giá đầy đủ sự phối hợp đó.
 
 Ưu điểm là nhanh, dễ hiểu và không cần thử hàng trăm tập con. Hạn chế là phải chọn trước tỷ lệ giữ và có thể bỏ lỡ tương tác.
+
+**Vì sao tính MI trên mẫu thay vì toàn bộ train?** Ước lượng MI với hàng triệu dòng có thể tốn thời gian; mẫu 20.000 dòng là lựa chọn giảm chi phí trong báo cáo. Lấy mẫu làm điểm xếp hạng có thể dao động hoặc thiếu đại diện của lớp hiếm. Con số 20.000 và tỷ lệ giữ 30% là cấu hình thực nghiệm, chưa được chứng minh tối ưu cho mọi dữ liệu.
+
+**Vì sao MI có thể phát hiện điều tương quan bỏ lỡ?** Tương quan thông thường mô tả quan hệ tuyến tính, trong khi MI nhằm đo sự phụ thuộc rộng hơn. Tuy nhiên MI từng cột vẫn không đánh giá toàn bộ lợi ích của một tập cột khi dùng chung. Nếu hai cột cùng kể một thông tin, cả hai có thể được xếp cao mà không giúp nhiều khi kết hợp.
 
 ### 7.3. Wrapper và hàm fitness
 
@@ -356,6 +462,12 @@ Fitness của GA/PSO trong báo cáo:
 
 Tính fitness dùng 5.000 dòng với CICIDS2017 và CICDDoS2019, toàn bộ train với UNSW; 30% dữ liệu dùng tìm kiếm làm validation. Vì đây chỉ là mẫu hoặc một lần chia, tập tối ưu trên validation có thể không tối ưu trên test.
 
+**Vì sao phải có “mẫu fitness”?** Đây là dữ liệu lấy từ train để thử nhiều tập cột nhanh hơn. Với 5.000 dòng và tỷ lệ 70/30, khoảng 3.500 dòng dùng fit DT, 1.500 dòng dùng validation. Mỗi ứng viên chỉ thay tập cột, còn phần dữ liệu đánh giá nên giữ cố định để so công bằng. Mẫu này không phải một bộ dữ liệu thứ tư và không phải test cuối.
+
+**Vì sao vừa thưởng F1 vừa phạt số cột?** Chỉ tối ưu F1 có thể giữ gần hết cột, không đạt mục tiêu giảm chiều. Chỉ tối thiểu số cột có thể chọn tập quá ít thông tin. Công thức fitness thể hiện mức đánh đổi đã chọn: ví dụ với n=50, tập A có F1=0,95 và 5 cột cho điểm 0,845; tập B có F1=0,96 và 10 cột cho 0,844. Công thức ưu tiên A dù F1 thấp hơn một chút. Hai trọng số 0,9 và 0,1 là quyết định thiết kế, không phải định luật.
+
+**Vì sao dùng DT và cache?** Fitness cần được tính rất nhiều lần, nên DT giúp giảm chi phí so với các mô hình nhiều cây. Cache nhận diện vector cột đã thử để tái dùng điểm; điều này phù hợp khi dữ liệu, cách chia và cấu hình mô hình được giữ cố định. Đổi bộ phân loại hoặc cách chia thì phải tính lại điểm phù hợp.
+
 ### 7.4. GA từng bước
 
 ![Minh họa NIDS](assets/pipeline_guide/38-ga-illustrated.png)
@@ -375,6 +487,10 @@ GA, Genetic Algorithm, mô phỏng chọn lọc qua các thế hệ:
 
 Chương trình lưu đệm kết quả của vector đã thử để tránh huấn luyện lại. GA không bảo đảm tìm được tối ưu toàn cục. Quần thể 30 và 30 thế hệ cũng không đồng nghĩa luôn có đúng 900 lần huấn luyện khác nhau vì có nghiệm lặp và cache.
 
+**Vì sao GA cần các thao tác này?** Khởi tạo nhiều vector giúp xuất phát từ nhiều tập cột. Tournament thiên về nghiệm tốt nhưng vẫn để các nghiệm khác có cơ hội làm cha mẹ. Lai ghép thử kết hợp các lựa chọn của hai cha mẹ; tổ hợp tốt của từng bên chưa chắc tốt khi ghép, nên phải chấm lại. Đột biến cho phép bật lại cột đã mất hoặc bỏ cột đang giữ, tránh chỉ xoay quanh những tổ hợp ban đầu.
+
+Elitism giữ lại nghiệm tốt để thế hệ sau không vô tình đánh mất nó. Sửa vector rỗng vì mô hình không thể học từ tập không có cột trong thiết kế này. Dừng sau 30 thế hệ giới hạn thời gian tính toán; đó là ngân sách thực nghiệm, không phải bằng chứng đã tìm hết hoặc tìm đúng tối ưu. Tăng quần thể hay số thế hệ có thể tốn thêm thời gian mà chưa chắc tăng F1 test.
+
 ### 7.5. PSO nhị phân từng bước
 
 ![Minh họa NIDS](assets/pipeline_guide/39-pso-illustrated.png)
@@ -392,6 +508,12 @@ Thiết lập: 30 vòng, trọng số quán tính giảm từ 0,7 xuống 0,4, h
 
 Trên CICIDS2017, fitness tăng từ 0,84381 lên 0,84829 ở vòng 6 và 0,84962 ở vòng 12; số cột giảm từ 22 xuống 14. Việc tìm kiếm có tiến triển hơn không bảo đảm F1 test cao hơn: báo cáo ghi F1 test thay từ 0,9981 xuống 0,9923.
 
+**Vì sao PSO cần pbest và gbest?** pbest lưu kinh nghiệm tốt nhất từng hạt đã gặp; gbest chia sẻ nghiệm tốt nhất của bầy. Hai nguồn này hướng việc thử các vector mới. Vận tốc là trạng thái toán học điều khiển xác suất chọn bit, không phải tốc độ gói tin. Sigmoid đưa vận tốc thực về khoảng xác suất để có thể lấy quyết định 0/1.
+
+**Vì sao giảm quán tính và giới hạn vận tốc?** Quán tính điều chỉnh mức giữ hướng cập nhật cũ. Giảm từ 0,7 xuống 0,4 là cách điều chỉnh ảnh hưởng đó theo vòng lặp trong báo cáo. Giới hạn vận tốc tránh sigmoid quá sát 0 hoặc 1 ở các giá trị rất lớn, khiến lựa chọn gần như cố định. Các tham số này là cấu hình đã thử, chưa có bằng chứng là tốt nhất.
+
+**Vì sao đột biến và khởi tạo lại?** Khi nhiều hạt quanh cùng nghiệm, chúng có thể ngừng khám phá tập cột khác. Lật bit tạo thay đổi nhỏ; khởi tạo lại hạt kém tạo xuất phát mới xa hơn. Giữ phần còn lại giúp không xóa hết kinh nghiệm đã có. Có thay đổi trong fitness cho thấy tìm kiếm tiến triển, nhưng không chứng minh hội tụ sớm là nguyên nhân duy nhất của mọi lần đứng yên.
+
 ### 7.6. Hybrid 1 kết hợp MI với GA hoặc PSO
 
 
@@ -404,6 +526,12 @@ Fitness bổ sung F1 của lớp ít mẫu nhất trong train:
 Trong đó `n` là số cột sau tiền lọc. Việc bổ sung một lớp hiếm không bảo đảm mọi lớp hiếm đều cải thiện. Nếu MI đã loại một cột cần thiết, wrapper sau đó không thể chọn lại cột ấy.
 
 Báo cáo dùng `w_feat = 0,05` cho Hybrid 1-GA; Hybrid 1-PSO trên CICIDS2017 và UNSW dùng 0,1. Khi không gian giảm một nửa, cùng một cột bị phạt nhiều hơn nếu giữ nguyên hệ số, vì mẫu số `n` nhỏ hơn. Đây là lý do trọng số ảnh hưởng rõ đến số cột và F1.
+
+**Vì sao tiền lọc giúp giảm chi phí?** Với D cột có khoảng 2^D tập con; giữ một nửa làm không gian nhỏ đi rất nhiều. Wrapper cũng huấn luyện trên ít cột hơn. Đổi lại, một cột có MI riêng thấp nhưng hữu ích khi kết hợp có thể bị loại vĩnh viễn. Tỷ lệ 50% là điểm đánh đổi thực nghiệm, không bảo đảm giữ mọi tín hiệu cần thiết.
+
+**Vì sao thêm F1 lớp hiếm khi đã có F1-macro?** Macro đã đối xử ngang nhau với các lớp, nhưng tăng điểm ở nhiều lớp vẫn có thể che việc một lớp hiếm giảm điểm. Thành phần bổ sung tăng áp lực giữ chất lượng cho lớp ít mẫu nhất. Nó cũng làm mục tiêu phụ thuộc lựa chọn lớp và có thể nhạy với ước lượng từ ít mẫu; không bảo đảm cải thiện mọi lớp hiếm.
+
+**Vì sao phải chú ý mẫu số n của mức phạt?** Với n=52, thêm một cột làm phần phạt tăng `w_feat/52`; sau lọc còn n=26, mức tăng là `w_feat/26`, gấp đôi nếu giữ cùng trọng số. Vì vậy cùng tên trọng số nhưng tác động thực tế khác giữa wrapper thuần và Hybrid 1.
 
 ### 7.7. Hybrid 2 kết hợp MI với SHAP từ XGBoost
 
@@ -421,11 +549,19 @@ Quy trình Hybrid 2:
 
 Trị tuyệt đối giúp đo độ lớn đóng góp, không để các đóng góp dương và âm triệt tiêu. Điểm SHAP phụ thuộc mô hình đã học và không chứng minh quan hệ nhân quả. Hybrid 2 không dùng vòng tìm kiếm kiểu GA/PSO; dùng XGBoost để chọn cột cũng không bắt buộc bộ phân loại cuối phải là XGBoost.
 
+**Vì sao cần cả MI và SHAP?** MI cung cấp cách nhìn từng cột gắn với nhãn; SHAP phản ánh đóng góp của cột trong mô hình XGBoost đã học. Phối hợp hai cách nhìn nhằm giảm phụ thuộc vào một cách xếp hạng, nhưng vẫn phải kiểm tra bằng đánh giá cuối, vì SHAP cũng phụ thuộc mô hình và dữ liệu học.
+
+**Vì sao lấy trị tuyệt đối SHAP rồi trung bình?** Một cột có thể đẩy dự đoán lên ở mẫu này và xuống ở mẫu khác. Lấy trung bình có dấu có thể cho gần 0 dù cột tác động mạnh. Trị tuyệt đối đo độ lớn; trung bình qua mẫu cho độ quan trọng tổng quát theo tập đang xét. Với đa lớp, lấy qua các lớp để không chỉ ưu tiên cách giải thích một lớp.
+
+**Vì sao chuẩn hóa điểm trước khi cộng?** MI và mean|SHAP| không cùng thang đo. Nếu cộng trực tiếp, loại điểm có giá trị số lớn hơn có thể chi phối dù đặt trọng số bằng nhau. Đổi riêng mỗi loại về [0,1] giúp trọng số 0,5/0,5 có ý nghĩa phối hợp rõ hơn. Nó không biến điểm thành xác suất, và bằng trọng số không có nghĩa hai nguồn thông tin chắc chắn đáng tin ngang nhau.
+
 ### 7.8. Các bộ phân loại cuối
 
 **Decision Tree** là một cây các điều kiện chia dữ liệu. **Random Forest** kết hợp nhiều cây với dữ liệu và đặc trưng được ngẫu nhiên hóa. **XGBoost** kết hợp các cây học nối tiếp. Báo cáo dùng DT cho fitness để giảm chi phí, rồi đánh giá một số tập cột bằng RF 100 cây và XGBoost 200 cây.
 
 `eval_selected.py` nhận tập cột đã chốt và đổi bộ phân loại cuối. Nó giúp kiểm tra cùng một tập cột phù hợp với các mô hình ra sao, không phải chạy lại GA để tối ưu riêng cho RF hoặc XGBoost.
+
+**Vì sao tìm bằng DT nhưng đánh giá thêm RF và XGBoost?** DT giúp thử nhanh; hai mô hình nhiều cây giúp kiểm tra lợi ích của tập cột có bền khi thay cách học không. Dùng đúng cùng tập cột giúp cô lập ảnh hưởng bộ phân loại. Đây là đánh giá khả năng chuyển tập cột giữa mô hình, không phải so các tập đã tối ưu riêng cho từng mô hình.
 
 ## 8. Kết quả tổng quan nên nhớ trước
 
@@ -472,6 +608,8 @@ Filter tăng F1 0,03 điểm phần trăm, quá nhỏ để kết luận tốt h
 
 Thời gian tìm kiếm GA khoảng 26 giây; PSO khoảng 60–100 giây; Hybrid 1 khoảng 15–35 giây cộng khoảng 7 giây MI. Phải cộng các khoản này khi so sánh chi phí xây dựng mô hình một lần.
 
+**Vì sao không gọi Filter là tốt nhất chắc chắn?** Chênh lệch F1 rất nhỏ và chỉ có một lần chạy. Số đo có thể thay đổi khi đổi seed, phép chia hoặc mẫu MI. Điểm mạnh rõ hơn trong bảng là lượng cột và chi phí train giảm; muốn xác nhận ưu thế chất lượng cần các lần lặp và khoảng bất định.
+
 ### 9.2. UNSW-NB15 nhị phân với Decision Tree
 
 ![F1-macro nhị phân: GA thuần chọn ít cột nhưng thấp hơn baseline.](assets/pipeline_guide/15-f1-unsw.png)
@@ -517,6 +655,8 @@ Bảng 3.7 cho thấy ảnh hưởng trọng số phạt của Hybrid 1-GA:
 
 Giảm phạt cho phép giữ thêm cột và cải thiện F1 ở hai phép thử này. Đây không phải bằng chứng rằng cứ giảm phạt là luôn tốt.
 
+**Vì sao ít cột có thể tốt hơn đủ cột?** Bớt cột có thể giảm nhiễu, thay cấu trúc cây và giảm việc ghi nhớ các quan hệ riêng của train. Bảng cho thấy hiện tượng đó nhưng chưa xác định chính xác cơ chế nào gây ra ở từng phương án. GA 4 cột thấp điểm hơn cũng cho thấy giảm nhiều không tự động tốt.
+
 ### 9.3. CICDDoS2019 nhị phân với Decision Tree
 
 ![Sau khi loại Inbound, full có F1 cao hơn các phương án FS với Decision Tree.](assets/pipeline_guide/15-f1-ddos.png)
@@ -544,6 +684,8 @@ Nguồn: Bảng 3.8, sau khi loại Inbound và chạy lại.
 | Hybrid 2 | 20/67 | 70,15 | 0,8847 | 0,9496 | 3,08 |
 
 Mọi phương án FS thấp hơn full khoảng 10,18–15,30 điểm F1. Khác biệt lớn hơn hai bộ trước. Chỉ dựa vào bảng này, không thể khẳng định FS giữ chất lượng gần như nguyên vẹn trên cả ba bộ dữ liệu.
+
+**Vì sao không dùng kết luận từ CICIDS2017 cho bộ này?** Train/test khác loại tấn công khiến tín hiệu có ích trên validation chưa chắc còn hữu ích ở test. Thêm vào đó, các cột đặc biệt và bộ phân loại làm điểm thay đổi mạnh. Cần đọc kết quả FS như một phần của bài toán tổng quát hóa, không chỉ xem số cột đã giảm.
 
 ### 9.4. Kết quả đa lớp
 
@@ -579,6 +721,8 @@ Trên CICIDS2017, Hybrid 1-GA vẫn có Accuracy 99,71% nhưng F1-macro chỉ 86
 Trên UNSW, Hybrid 1-GA đạt 0,5550, cao hơn full 6,54 điểm, với 6/42 cột, giảm 85,71% số chiều. Cách giải thích “giảm nhiễu giúp lớp hiếm” là giả thuyết hợp lý của báo cáo, chưa được chứng minh bằng phân tích từng lớp hay thí nghiệm nhân quả.
 
 Trên CICDDoS2019, có 501.372/561.000 mẫu test, khoảng 89,4%, thuộc nhãn chưa có ở train. F1-macro các phương án chỉ khoảng 0,084–0,116; full là 0,1010. Không dùng các số này để kết luận phương pháp FS nào tốt nhất. Mã Unknown là cách biểu diễn nhãn khi chấm điểm, không phải một lớp mà mô hình đã được huấn luyện để nhận biết.
+
+**Vì sao cần chạy lại lựa chọn cột cho đa lớp?** Gom nhiều loại tấn công thành Attack có thể làm mất nhu cầu phân biệt giữa chúng. Một cột không cần để tách Normal/Attack vẫn có thể cần để tách hai loại tấn công. Vì vậy tập tối ưu theo nhãn nhị phân không mặc nhiên tối ưu theo nhãn đa lớp.
 
 ### 9.5. Đổi bộ phân loại trên cùng tập cột
 
@@ -624,6 +768,8 @@ Tập GA 6 cột gồm `Destination Port`, `Bwd Packet Length Std`, `Fwd Packets
 
 XGBoost trên CICDDoS2019 còn nhạy với thứ tự cột. Cùng tập Hybrid 1-PSO: thứ tự JSON đạt 0,8614, thứ tự gốc đạt 0,8290, đảo ngược đạt 0,8279. Báo cáo quan sát kết quả lặp lại ổn định theo từng thứ tự và đưa giả thuyết về xử lý các điểm chia ngang độ lợi. Cơ chế đó chưa được kiểm chứng. Bảng trên dùng thứ tự cột gốc.
 
+**Vì sao giữ cả tập cột và thứ tự cột khi so mô hình?** Thay tập cột làm đầu vào khác; thay thứ tự có thể làm cách xử lý các lựa chọn ngang điểm khác trong một số triển khai. Muốn biết chênh lệch do bộ phân loại, cần kiểm soát các yếu tố đầu vào này. Đặc biệt khi suy luận bằng một mô hình đã fit, đảo cột mà không sắp lại đúng có thể khiến mô hình đọc sai đặc trưng.
+
 ### 9.6. Bỏ từng đặc trưng để kiểm tra CICDDoS2019
 
 ![Minh họa NIDS](assets/pipeline_guide/49-ablation.png)
@@ -648,6 +794,8 @@ DT và XGBoost phụ thuộc mạnh vào cặp cột này. Bỏ cả hai không 
 
 XGBoost qua 5 thứ tự cột có F1 trung bình ± độ lệch chuẩn lần lượt: full `0,9570 ± 0,0093`; bỏ cổng đích `0,8160 ± 0,0010`; bỏ URG `0,8430 ± 0,0022`; bỏ cả hai `0,8068 ± 0,0037`. Đây là biến thiên theo thứ tự cột, không phải kết quả nhiều seed cho toàn bộ nghiên cứu.
 
+**Vì sao bỏ từng cột rồi bỏ cả hai?** Bỏ riêng đo mức phụ thuộc khi cột còn lại vẫn có mặt; bỏ cả hai kiểm tra khả năng thay thế bằng các cột khác. Các mức giảm không cộng đơn giản vì mỗi cây được học lại từ đầu và có thể đổi các nhánh. Thử thêm thứ tự cột của XGBoost giúp xem mức giảm có còn lớn hơn biến thiên do thứ tự hay không.
+
 ### 9.7. Thêm cột còn thiếu vào các tập yếu
 
 ![Số liệu Bảng 3.13: thêm một cột có thể cải thiện mạnh F1. XGBoost dùng thứ tự JSON.](assets/pipeline_guide/21-add-back.png)
@@ -666,6 +814,8 @@ Nguồn: Bảng 3.13. XGBoost dùng thứ tự JSON, cột thêm vào được �
 Thêm cổng đích cho Hybrid 1-PSO cải thiện cả ba mô hình. Báo cáo nghi ngờ cổng đích phản ánh cấu hình thí nghiệm. URG bằng 0 ở 99,95% Attack train và 99,93% Attack test, so với 50,2% và 57,5% ở Normal. Đây là tín hiệu phân biệt mạnh, nhưng giải thích nó bằng hành vi flood vẫn là giả thuyết.
 
 Không nên suy ra rằng hai cột này đủ để có mô hình tốt trong mọi mạng. Ngay trong thực nghiệm, có cả hai cột vẫn chưa bảo đảm điểm cao ở mọi tập cột và mọi bộ phân loại.
+
+**Vì sao còn phải thử thêm cột sau khi đã thử bỏ?** Bỏ khỏi full cho biết cột có ích trong bối cảnh nhiều đặc trưng; thêm vào tập yếu hỏi nó có giúp ngay trong bối cảnh tập con đó không. Tác động của một cột phụ thuộc các cột đi cùng và mô hình dùng. Nếu điểm tăng mạnh, cần kiểm tra tín hiệu hợp lệ ở môi trường mới hay chỉ phản ánh cấu hình thu thập.
 
 ## 10. Đọc các tệp trong dự án để hiểu pipeline
 
