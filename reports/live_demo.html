@@ -688,15 +688,17 @@
                 <div class="card-header">
                     <div>
                         <div class="card-title">1. Chọn Luồng Lưu Lượng Mẫu</div>
-                        <div class="card-subtitle">Dữ liệu chuẩn hóa từ NSL-KDD & CICIDS2017</div>
+                        <div class="card-subtitle">Dữ liệu kiểm định thật từ bốn bộ dữ liệu NIDS</div>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label" for="datasetSelect">Tập dữ liệu kiểm định:</label>
-                    <select id="datasetSelect" class="form-select" onchange="onDatasetChange()">
+                    <select id="datasetSelect" class="form-select" onchange="onDatasetChange()" aria-busy="false">
                         <option value="nslkdd" selected>NSL-KDD (Mạng TCP/IP Cổ điển — 39 đặc trưng)</option>
                         <option value="cicids2017">CICIDS2017 (Lưu lượng Luồng Hiện đại — 52 đặc trưng)</option>
+                        <option value="cicddos2019">CICDDoS2019 (Lưu lượng DDoS — 67 đặc trưng)</option>
+                        <option value="unsw">UNSW-NB15 (Lưu lượng đa dạng — 42 đặc trưng)</option>
                     </select>
                 </div>
 
@@ -725,6 +727,7 @@
                         <option value="ga" selected>Wrapper: Genetic Algorithm (GA — 6 đặc trưng tối ưu)</option>
                         <option value="pso">Wrapper: Binary Particle Swarm (PSO — 8 đặc trưng)</option>
                         <option value="hybrid">Hybrid 1: Filter MI + GA v2 (6 đặc trưng tinh gọn nhất)</option>
+                        <option value="hybrid2">Hybrid 2: Filter + Embedded/GA</option>
                     </select>
                 </div>
 
@@ -741,13 +744,13 @@
                 </div>
 
                 <div class="btn-action-group">
-                    <button class="btn-primary" onclick="executeDetection()">
+                    <button id="detectButton" type="button" class="btn-primary">
                         Phát Hiện Xâm Nhập
                     </button>
-                    <button class="btn-secondary" onclick="generateRandomVariation()">
+                    <button id="randomButton" type="button" class="btn-secondary">
                         Nhiễu Ngẫu Nhiên
                     </button>
-                    <button class="btn-secondary" onclick="resetCurrentScenario()">
+                    <button id="resetButton" type="button" class="btn-secondary">
                         Đặt Lại Mẫu
                     </button>
                 </div>
@@ -810,7 +813,7 @@
                 </div>
 
                 <div class="xai-section">
-                    <div class="form-label" style="margin-bottom: 8px;">Chuỗi Luật Suy Luận Logic (Decision Tree Logic Path):</div>
+                    <div class="form-label" style="margin-bottom: 8px;">Chuỗi Suy Luận của Mô hình Random Forest:</div>
                     <div id="rulesTimeline" class="rules-timeline">
                         <!-- Populated by JS -->
                     </div>
@@ -1086,6 +1089,21 @@ const DATASETS = {
     }
 };
 
+DATASETS.cicddos2019 = {
+    name: "CICDDoS2019",
+    totalFeatures: 67,
+    scenarios: [],
+    featureMeta: [],
+    fsMasks: {}
+};
+DATASETS.unsw = {
+    name: "UNSW-NB15",
+    totalFeatures: 42,
+    scenarios: [],
+    featureMeta: [],
+    fsMasks: {}
+};
+
 // State Variables
 let currentDataset = "nslkdd";
 let currentScenarioId = "nsl_normal";
@@ -1096,6 +1114,9 @@ let activeSampleValues = {};
  * INITIALIZATION
  */
 window.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("detectButton").addEventListener("click", executeDetection);
+    document.getElementById("randomButton").addEventListener("click", generateRandomVariation);
+    document.getElementById("resetButton").addEventListener("click", resetCurrentScenario);
     initUI();
 });
 
@@ -1106,25 +1127,52 @@ async function initUI() {
 }
 
 async function loadRealSamples(datasetKey) {
-    const apiDataset = datasetKey === "nslkdd" ? "NSL-KDD" : "CICIDS2017";
-    const availableMethods = datasetKey === "nslkdd"
-        ? new Set(["baseline", "ga", "pso"])
-        : new Set(["baseline", "filter", "ga", "pso", "hybrid"]);
+    const apiDataset = {
+        nslkdd: "NSL-KDD",
+        cicids2017: "CICIDS2017",
+        cicddos2019: "CICDDoS2019",
+        unsw: "UNSW"
+    }[datasetKey];
+    DATASETS[datasetKey].scenarios = [];
+    document.getElementById("scenarioContainer").innerHTML =
+        '<div class="form-desc">Đang tải các mẫu thật từ tập kiểm định...</div>';
     document.querySelectorAll("#fsMethodSelect option").forEach(option => {
-        option.disabled = !availableMethods.has(option.value);
+        option.disabled = false;
     });
-    if (!availableMethods.has(currentFSMethod)) {
-        currentFSMethod = "ga";
-        document.getElementById("fsMethodSelect").value = currentFSMethod;
-    }
     try {
         const response = await fetch(`http://127.0.0.1:8765/api/samples?dataset=${encodeURIComponent(apiDataset)}`);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const samples = await response.json();
+        const payload = await response.json();
+        const samples = Array.isArray(payload) ? payload : payload.samples;
+        if (!Array.isArray(samples) || samples.length === 0) {
+            throw new Error("Server không trả về mẫu kiểm định hợp lệ");
+        }
         DATASETS[datasetKey].scenarios = samples;
+        DATASETS[datasetKey].totalFeatures = payload.featureNames.length;
+        DATASETS[datasetKey].featureMeta = payload.featureNames.map(key => {
+            const values = samples.map(sample => Number(sample.values[key]) || 0);
+            const max = Math.max(1, ...values.map(value => Math.abs(value)));
+            return { key, name: key, min: 0, max, step: max > 10 ? 1 : 0.01, unit: "" };
+        });
+        DATASETS[datasetKey].fsMasks = Object.fromEntries(
+            Object.entries(payload.methods).map(([method, features]) => [
+                method, { count: features.length, list: features }
+            ])
+        );
+        const availableMethods = new Set(Object.keys(payload.methods));
+        document.querySelectorAll("#fsMethodSelect option").forEach(option => {
+            option.disabled = !availableMethods.has(option.value);
+        });
+        if (!availableMethods.has(currentFSMethod)) {
+            currentFSMethod = "baseline";
+            document.getElementById("fsMethodSelect").value = currentFSMethod;
+        }
         currentScenarioId = samples[0].id;
     } catch (error) {
         console.error("Không thể kết nối NIDS inference server:", error);
+        DATASETS[datasetKey].scenarios = [];
+        document.getElementById("scenarioContainer").innerHTML =
+            '<div class="form-desc">Không tải được kịch bản. Kiểm tra server rồi chọn lại tập dữ liệu.</div>';
         document.getElementById("verdictMainLabel").innerText = "CHƯA KẾT NỐI SERVER MÔ HÌNH";
         document.getElementById("verdictSubDesc").innerText =
             "Chạy scripts/live_demo_server.py rồi tải lại trang để dùng dữ liệu và mô hình thật.";
@@ -1134,16 +1182,32 @@ async function loadRealSamples(datasetKey) {
 async function onDatasetChange() {
     const sel = document.getElementById("datasetSelect");
     currentDataset = sel.value;
+    sel.disabled = true;
+    sel.setAttribute("aria-busy", "true");
+    markDatasetLoading("Đang tải cấu hình đặc trưng...");
     await loadRealSamples(currentDataset);
-    currentScenarioId = DATASETS[currentDataset].scenarios[0].id;
-    renderScenarioButtons();
-    loadScenario(currentScenarioId);
+    const firstScenario = DATASETS[currentDataset].scenarios[0];
+    if (firstScenario) {
+        currentScenarioId = firstScenario.id;
+        renderScenarioButtons();
+        loadScenario(currentScenarioId, false);
+    }
+    sel.disabled = false;
+    sel.setAttribute("aria-busy", "false");
+    markDetectionPending();
 }
 
 function onFSMethodChange() {
     currentFSMethod = document.getElementById("fsMethodSelect").value;
     renderFeatureInputs();
-    executeDetection();
+    markDetectionPending();
+}
+
+function markDatasetLoading(message) {
+    const description = document.getElementById("verdictSubDesc");
+    if (description) description.innerText = message;
+    const button = document.getElementById("detectButton");
+    if (button) button.disabled = true;
 }
 
 function renderScenarioButtons() {
@@ -1169,18 +1233,20 @@ function selectScenario(scenarioId) {
     loadScenario(scenarioId);
 }
 
-function loadScenario(scenarioId) {
+function loadScenario(scenarioId, shouldDetect = true) {
     const sc = DATASETS[currentDataset].scenarios.find(s => s.id === scenarioId);
     if (!sc) return;
 
     // Deep copy values
     activeSampleValues = JSON.parse(JSON.stringify(sc.values));
     renderFeatureInputs();
-    executeDetection();
+    if (shouldDetect) executeDetection();
+    else markDetectionPending();
 }
 
 function resetCurrentScenario() {
-    loadScenario(currentScenarioId);
+    loadScenario(currentScenarioId, false);
+    markDetectionPending();
 }
 
 function generateRandomVariation() {
@@ -1197,7 +1263,7 @@ function generateRandomVariation() {
         }
     });
     renderFeatureInputs();
-    executeDetection();
+    markDetectionPending();
 }
 
 function renderFeatureInputs() {
@@ -1248,20 +1314,32 @@ function onSliderChange(key, value) {
     activeSampleValues[key] = parseFloat(value);
     const box = document.querySelector(`input[type="number"][onchange*="'${key}'"]`);
     if (box) box.value = value;
-    executeDetection();
+    markDetectionPending();
 }
 
 function onValBoxChange(key, value) {
     activeSampleValues[key] = parseFloat(value);
     const slider = document.querySelector(`input[type="range"][oninput*="'${key}'"]`);
     if (slider) slider.value = value;
-    executeDetection();
+    markDetectionPending();
+}
+
+function markDetectionPending() {
+    const button = document.getElementById("detectButton");
+    if (button) {
+        button.disabled = false;
+        button.innerText = "Phát Hiện Xâm Nhập";
+    }
+    const description = document.getElementById("verdictSubDesc");
+    if (description) {
+        description.innerText = "Mẫu đã thay đổi. Nhấn “Phát Hiện Xâm Nhập” để gửi mẫu mới vào mô hình.";
+    }
 }
 
 /**
  * INFERENCE & EXPLAINABILITY ENGINE
  */
-function executeDetection() {
+function legacyRuleBasedDetection() {
     const datasetConf = DATASETS[currentDataset];
     const mask = datasetConf.fsMasks[currentFSMethod];
     
@@ -1281,7 +1359,7 @@ function executeDetection() {
         const count = activeSampleValues["count"] || 0;
         const failedLogins = activeSampleValues["num_failed_logins"] || 0;
 
-        // Decision Tree Rule Matching
+        // Legacy rule-based fallback; the active path uses Random Forest API inference.
         if (serror > 0.65) {
             isAttack = true;
             attackType = "Tấn công từ chối dịch vụ DoS (Neptune / SYN Flood)";
@@ -1429,7 +1507,7 @@ function executeDetection() {
         impactTbody.appendChild(tr);
     });
 
-    // Render Decision Tree Path
+    // Render model inference path
     const rulesContainer = document.getElementById("rulesTimeline");
     rulesContainer.innerHTML = "";
     rulesPath.forEach((r, idx) => {
@@ -1488,8 +1566,18 @@ function renderComparisonTable(isAttack, attackType) {
  */
 let predictionRequestId = 0;
 async function executeDetection() {
+    const detectButton = document.getElementById("detectButton");
+    if (detectButton) {
+        detectButton.disabled = true;
+        detectButton.innerText = "Đang dự đoán...";
+    }
     const requestId = ++predictionRequestId;
-    const apiDataset = currentDataset === "nslkdd" ? "NSL-KDD" : "CICIDS2017";
+    const apiDataset = {
+        nslkdd: "NSL-KDD",
+        cicids2017: "CICIDS2017",
+        cicddos2019: "CICDDoS2019",
+        unsw: "UNSW"
+    }[currentDataset];
     const started = performance.now();
     try {
         const response = await fetch("http://127.0.0.1:8765/api/predict", {
@@ -1516,7 +1604,7 @@ async function executeDetection() {
         document.getElementById("verdictMainLabel").innerText =
             `${isAttack ? "ATTACK" : "NORMAL"} — lớp mã hóa ${prediction}`;
         document.getElementById("verdictSubDesc").innerText =
-            `Dự đoán từ Decision Tree huấn luyện trên ${apiDataset}/X_train.csv và tập đặc trưng ${currentFSMethod}.`;
+            `Dự đoán từ Random Forest huấn luyện trên ${apiDataset}/X_train.csv và tập đặc trưng ${currentFSMethod}.`;
         document.getElementById("verdictConfidence").innerText =
             `${(result.confidence * 100).toFixed(1)}%`;
         document.getElementById("verdictLatency").innerText = `${latencyMs} ms`;
@@ -1553,14 +1641,22 @@ async function executeDetection() {
                 <span class="rule-text">Mẫu thật từ X_test.csv</span>
                 <span class="rule-status rule-pass">Đã nạp</span></div>
             <div class="rule-step"><span class="rule-badge">Mô hình</span>
-                <span class="rule-text">DecisionTreeClassifier(random_state=42)</span>
+                <span class="rule-text">RandomForestClassifier(n_estimators=25, max_depth=20, min_samples_leaf=2)</span>
                 <span class="rule-status rule-pass">Đã dự đoán</span></div>`;
         renderApiComparisonTable(result, isAttack);
+        if (detectButton) {
+            detectButton.disabled = false;
+            detectButton.innerText = "Phát Hiện Xâm Nhập";
+        }
     } catch (error) {
         console.error("Inference server error:", error);
         document.getElementById("verdictMainLabel").innerText = "CHƯA KẾT NỐI SERVER MÔ HÌNH";
         document.getElementById("verdictSubDesc").innerText =
             "Chạy: python scripts/live_demo_server.py rồi tải lại trang.";
+        if (detectButton) {
+            detectButton.disabled = false;
+            detectButton.innerText = "Thử Lại Phát Hiện";
+        }
     }
 }
 
@@ -1572,7 +1668,7 @@ function renderApiComparisonTable(result, isAttack) {
     const row = document.createElement("tr");
     row.className = "highlight-row";
     row.innerHTML = `
-        <td>Decision Tree — ${currentFSMethod} <span style="color: var(--primary);">(Đang chọn)</span></td>
+        <td>Random Forest — ${currentFSMethod} <span style="color: var(--primary);">(Đang chọn)</span></td>
         <td class="num-col"><strong>${currentCount}</strong></td>
         <td class="num-col"><span class="reduction-badge">-${(((total - currentCount) / total) * 100).toFixed(1)}%</span></td>
         <td class="num-col">Đo thực tế</td>

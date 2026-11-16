@@ -16,7 +16,7 @@ from urllib.parse import parse_qs, urlparse
 
 import numpy as np
 import pandas as pd
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "output"
@@ -39,11 +39,34 @@ DATASETS = {
             "ga": "fs_ga",
             "pso": "fs_pso",
             "hybrid": "fs_hybrid1_ga_v2",
+            "hybrid2": "fs_hybrid2",
+        },
+    },
+    "CICDDoS2019": {
+        "dir": "CICDDoS2019",
+        "methods": {
+            "baseline": None,
+            "filter": "fs_filter",
+            "ga": "fs_ga",
+            "pso": "fs_pso",
+            "hybrid": "fs_hybrid1_ga",
+            "hybrid2": "fs_hybrid2",
+        },
+    },
+    "UNSW": {
+        "dir": "UNSW",
+        "methods": {
+            "baseline": None,
+            "filter": "fs_filter",
+            "ga": "fs_ga",
+            "pso": "fs_pso",
+            "hybrid": "fs_hybrid1_ga",
+            "hybrid2": "fs_hybrid2",
         },
     },
 }
 
-_models: dict[tuple[str, str], tuple[DecisionTreeClassifier, list[str], dict]] = {}
+_models: dict[tuple[str, str], tuple[RandomForestClassifier, list[str], dict]] = {}
 _samples: dict[str, list[dict]] = {}
 
 
@@ -79,7 +102,13 @@ def _load_model(dataset: str, method: str):
     X_train = pd.read_csv(data_dir / "X_train.csv", usecols=selected)
     X_train = X_train.reindex(columns=selected)
     y_train = pd.read_csv(data_dir / "y_train.csv")["label"]
-    model = DecisionTreeClassifier(random_state=42)
+    model = RandomForestClassifier(
+        random_state=42,
+        n_estimators=25,
+        max_depth=20,
+        min_samples_leaf=2,
+        n_jobs=-1,
+    )
     model.fit(X_train, y_train)
 
     metrics = {}
@@ -119,6 +148,19 @@ def _load_samples(dataset: str) -> list[dict]:
     return result
 
 
+def _dataset_payload(dataset: str) -> dict:
+    config = _dataset(dataset)
+    samples = _load_samples(dataset)
+    return {
+        "samples": samples,
+        "featureNames": _feature_names(dataset),
+        "methods": {
+            method: _selected_features(dataset, method)
+            for method in config["methods"]
+        },
+    }
+
+
 def _predict(payload: dict) -> dict:
     dataset = payload["dataset"]
     method = payload["method"]
@@ -128,7 +170,10 @@ def _predict(payload: dict) -> dict:
     prediction = model.predict(vector)[0]
     probabilities = model.predict_proba(vector)[0]
     class_index = list(model.classes_).index(prediction)
-    confidence = float(probabilities[class_index])
+    raw_confidence = float(probabilities[class_index])
+    # Tree ensembles can return exactly 1.0 when every tree agrees. Keep the
+    # displayed score conservative instead of presenting that as certainty.
+    confidence = 0.5 + (raw_confidence - 0.5) * 0.8
     importances = model.feature_importances_
     contributions = [
         {
@@ -145,6 +190,7 @@ def _predict(payload: dict) -> dict:
     return {
         "prediction": str(prediction),
         "confidence": confidence,
+        "rawConfidence": raw_confidence,
         "selectedFeatures": selected,
         "featureContributions": contributions,
         "metrics": metrics,
@@ -168,12 +214,17 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path == "/api/samples":
             dataset = parse_qs(parsed.query).get("dataset", ["NSL-KDD"])[0]
             try:
-                self._send(200, _load_samples(dataset))
+                self._send(200, _dataset_payload(dataset))
             except (OSError, ValueError, KeyError) as exc:
                 self._send(500, {"error": str(exc)})
             return
-        if parsed.path == "/" or parsed.path == "/live_demo.html":
-            content = (REPORTS / "live_demo.html").read_bytes()
+        report_name = "live_demo.html" if parsed.path in {"/", "/live_demo.html"} else parsed.path.lstrip("/")
+        if report_name in {"live_demo.html", "demo_dashboard.html"}:
+            report_path = REPORTS / report_name
+            if not report_path.is_file():
+                self._send(404, {"error": "Report not found"})
+                return
+            content = report_path.read_bytes()
             self._send(200, content, "text/html")
             return
         self._send(404, {"error": "Not found"})

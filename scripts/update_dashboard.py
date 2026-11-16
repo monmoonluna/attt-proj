@@ -6,7 +6,7 @@ Refactor giao diện Web Dashboard theo chuẩn UX Học thuật & Báo cáo Kho
   1. Tổng quan & Quy trình (Overview & Architecture Pipeline)
   2. Thực nghiệm Nhị phân (Binary Detection - 4 Datasets với Sub-pills)
   3. Thực nghiệm Đa lớp (Multi-Class - 3 Datasets với Sub-pills)
-  4. ⚡ Đa Mô hình & Ablation Study (DT vs RF vs XGBoost + Bóc tách đặc trưng)
+  4. Đa Mô hình & Ablation Study (DT vs RF vs XGBoost vs TabPFN + Bóc tách đặc trưng)
   5. Thư viện Biểu đồ & Hội tụ (16 Biểu đồ GA/PSO & EDA độ nét cao)
 - Có Sub-pills chuyển nhanh giữa các bộ dữ liệu mượt mà, không cuộn dài
 - Tự động quét 100% tất cả 63 lượt thực nghiệm định lượng từ output/
@@ -135,24 +135,30 @@ def generate_dashboard():
     ablation_data = {}
     p_ab = os.path.join(OUTPUT_DIR, "CICDDoS2019", "ablation_full.json")
     if os.path.exists(p_ab):
-        with open(p_ab, "r") as f:
+        with open(p_ab, "r", encoding="utf-8") as f:
             ablation_data = json.load(f).get("results", {})
 
     # Load XGBoost evaluations
     xgb_cic = {}
     p_xgb_cic = os.path.join(OUTPUT_DIR, "CICIDS2017", "eval_xgb.json")
     if os.path.exists(p_xgb_cic):
-        with open(p_xgb_cic, "r") as f: xgb_cic = json.load(f)
+        with open(p_xgb_cic, "r", encoding="utf-8") as f: xgb_cic = json.load(f)
 
     xgb_dos = {}
     p_xgb_dos = os.path.join(OUTPUT_DIR, "CICDDoS2019", "eval_xgb.json")
     if os.path.exists(p_xgb_dos):
-        with open(p_xgb_dos, "r") as f: xgb_dos = json.load(f)
+        with open(p_xgb_dos, "r", encoding="utf-8") as f: xgb_dos = json.load(f)
 
     xgb_unsw = {}
     p_xgb_unsw = os.path.join(OUTPUT_DIR, "UNSW", "eval_xgb.json")
     if os.path.exists(p_xgb_unsw):
-        with open(p_xgb_unsw, "r") as f: xgb_unsw = json.load(f)
+        with open(p_xgb_unsw, "r", encoding="utf-8") as f: xgb_unsw = json.load(f)
+
+    tabpfn_data = {}
+    p_tabpfn = os.path.join(OUTPUT_DIR, "tabpfn_evaluation.json")
+    if os.path.exists(p_tabpfn):
+        with open(p_tabpfn, "r", encoding="utf-8") as f:
+            tabpfn_data = json.load(f)
 
     # Images
     img_arch = encode_img_base64(os.path.join(ROOT_DIR, "docs", "assets", "quy-trinh-nids.png"))
@@ -1476,6 +1482,59 @@ def generate_dashboard():
             </div>
         </div>
 
+        <!-- TabPFN evaluation -->
+        <div class="card">
+            <div class="card-header">
+                <span>3. ĐÁNH GIÁ THỰC NGHIỆM TABPFN VỚI RANDOM FOREST</span>
+                <span class="badge-tag" style="background:#f1f5f9; color:#475569;">5000 train / 2000 test mỗi tập</span>
+            </div>
+            <p style="font-size:13.5px; color:var(--text-muted); margin-bottom:12px;">
+                TabPFN được đánh giá trên cùng các đặc trưng đã chọn. Theo tiêu chí định trước,
+                chỉ thay model chính khi TabPFN có F1-macro cao hơn Random Forest trên cả bốn bộ dữ liệu.
+            </p>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr><th>Bộ dữ liệu</th><th class="num-col">RF F1-macro</th><th class="num-col">TabPFN F1-macro</th><th class="num-col">RF Accuracy</th><th class="num-col">TabPFN Accuracy</th><th>Kết luận</th></tr>
+                    </thead>
+                    <tbody>
+    """
+    for ds_name in ("NSL-KDD", "CICIDS2017", "CICDDoS2019", "UNSW"):
+        values = tabpfn_data.get(ds_name, {})
+        rf = values.get("random_forest", {})
+        tab = values.get("tabpfn", {})
+        rf_f1 = rf.get("f1_macro")
+        tab_f1 = tab.get("f1_macro")
+        rf_acc = rf.get("accuracy")
+        tab_acc = tab.get("accuracy")
+        if None in (rf_f1, tab_f1, rf_acc, tab_acc):
+            continue
+        winner = "TabPFN tốt hơn" if tab_f1 > rf_f1 else "Random Forest tốt hơn"
+        color = "#166534" if tab_f1 > rf_f1 else "#334155"
+        html_content += f"""
+                        <tr>
+                            <td><strong>{ds_name}</strong></td>
+                            <td class="num-col">{rf_f1 * 100:.2f}%</td>
+                            <td class="num-col">{tab_f1 * 100:.2f}%</td>
+                            <td class="num-col">{rf_acc * 100:.2f}%</td>
+                            <td class="num-col">{tab_acc * 100:.2f}%</td>
+                            <td style="color:{color}; font-weight:600;">{winner}</td>
+                        </tr>
+        """
+
+    decision = tabpfn_data.get("decision", {})
+    html_content += f"""
+                    </tbody>
+                </table>
+            </div>
+            <div class="exec-guide-note">
+                <strong>Kết luận:</strong> {"Giữ Random Forest làm model chính." if not decision.get("replace_main_model", False) else "TabPFN đủ điều kiện thay model chính."}
+                TabPFN chỉ thắng trên CICIDS2017; Random Forest thắng trên NSL-KDD, CICDDoS2019 và UNSW.
+                Kết quả được lưu trong <code>output/tabpfn_evaluation.json</code>.
+            </div>
+        </div>
+
+        <!-- End TabPFN evaluation -->
         <!-- Ablation Study -->
         <div class="card">
             <div class="card-header">
@@ -1765,7 +1824,7 @@ def generate_dashboard():
 
     with open(output_html_path, "w", encoding="utf-8") as f:
         f.write(html_content)
-    print(f"✓ Đã refactor Web Dashboard thành công tại: {output_html_path} ({len(html_content)} bytes)")
+    print(f"Dashboard generated: {output_html_path} ({len(html_content)} bytes)")
 
 if __name__ == "__main__":
     generate_dashboard()

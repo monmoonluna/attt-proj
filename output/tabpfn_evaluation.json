@@ -1,0 +1,105 @@
+{
+  "NSL-KDD": {
+    "selected_features": [
+      "service",
+      "src_bytes",
+      "dst_host_count",
+      "dst_host_diff_srv_rate",
+      "dst_host_same_src_port_rate",
+      "dst_host_srv_serror_rate"
+    ],
+    "n_train": 5000,
+    "n_test": 2000,
+    "random_forest": {
+      "accuracy": 0.7785,
+      "f1_macro": 0.7783669647706035,
+      "train_time_sec": 0.2311802003532648,
+      "inference_time_sec": 0.042681099846959114
+    },
+    "tabpfn": {
+      "accuracy": 0.776,
+      "f1_macro": 0.775784528932304,
+      "train_time_sec": 102.71917179971933,
+      "inference_time_sec": 713.8893369003199
+    }
+  },
+  "CICIDS2017": {
+    "selected_features": [
+      "Packet Length Variance",
+      "Max Packet Length",
+      "Total Length of Fwd Packets",
+      "Init_Win_bytes_backward",
+      "Init_Win_bytes_forward",
+      "Bwd Packet Length Std"
+    ],
+    "n_train": 5000,
+    "n_test": 2000,
+    "random_forest": {
+      "accuracy": 0.9905,
+      "f1_macro": 0.9830687830687831,
+      "train_time_sec": 1.4867925001308322,
+      "inference_time_sec": 0.06918470002710819
+    },
+    "tabpfn": {
+      "accuracy": 0.9945,
+      "f1_macro": 0.9901511308963948,
+      "train_time_sec": 33.022816400043666,
+      "inference_time_sec": 636.416165499948
+    }
+  },
+  "CICDDoS2019": {
+    "selected_features": [
+      "Destination Port",
+      "Fwd Packet Length Min",
+      "Packet Length Std",
+      "URG Flag Count"
+    ],
+    "n_train": 5000,
+    "n_test": 2000,
+    "random_forest": {
+      "accuracy": 0.9715,
+      "f1_macro": 0.9295927310053231,
+      "train_time_sec": 0.6954952999949455,
+      "inference_time_sec": 0.021522900089621544
+    },
+    "tabpfn": {
+      "accuracy": 0.956,
+      "f1_macro": 0.8973075917696702,
+      "train_time_sec": 6.890328200068325,
+      "inference_time_sec": 750.5482844002545
+    }
+  },
+  "UNSW": {
+    "selected_features": [
+      "sbytes",
+      "smean"
+    ],
+    "n_train": 5000,
+    "n_test": 2000,
+    "random_forest": {
+      "accuracy": 0.836,
+      "f1_macro": 0.8273364328549289,
+      "train_time_sec": 0.88739849999547,
+      "inference_time_sec": 0.025814900174736977
+    },
+    "tabpfn": {
+      "accuracy": 0.8055,
+      "f1_macro": 0.789898662561859,
+      "train_time_sec": 7.10708440002054,
+      "inference_time_sec": 786.4135141000152
+    }
+  },
+  "decision": {
+    "replace_main_model": false,
+    "tabpfn_wins_all_datasets": {
+      "NSL-KDD": false,
+      "CICIDS2017": true,
+      "CICDDoS2019": false,
+      "UNSW": false
+    },
+    "rule": "Chỉ thay model chính nếu TabPFN có F1-macro cao hơn Random Forest ở cả 4 dataset.",
+    "device": "cpu",
+    "train_samples_per_dataset": 5000,
+    "test_samples_per_dataset": 2000
+  }
+}
