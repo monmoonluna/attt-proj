@@ -1099,14 +1099,42 @@ window.addEventListener("DOMContentLoaded", () => {
     initUI();
 });
 
-function initUI() {
+async function initUI() {
+    await loadRealSamples(currentDataset);
     renderScenarioButtons();
     loadScenario(currentScenarioId);
 }
 
-function onDatasetChange() {
+async function loadRealSamples(datasetKey) {
+    const apiDataset = datasetKey === "nslkdd" ? "NSL-KDD" : "CICIDS2017";
+    const availableMethods = datasetKey === "nslkdd"
+        ? new Set(["baseline", "ga", "pso"])
+        : new Set(["baseline", "filter", "ga", "pso", "hybrid"]);
+    document.querySelectorAll("#fsMethodSelect option").forEach(option => {
+        option.disabled = !availableMethods.has(option.value);
+    });
+    if (!availableMethods.has(currentFSMethod)) {
+        currentFSMethod = "ga";
+        document.getElementById("fsMethodSelect").value = currentFSMethod;
+    }
+    try {
+        const response = await fetch(`http://127.0.0.1:8765/api/samples?dataset=${encodeURIComponent(apiDataset)}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const samples = await response.json();
+        DATASETS[datasetKey].scenarios = samples;
+        currentScenarioId = samples[0].id;
+    } catch (error) {
+        console.error("Không thể kết nối NIDS inference server:", error);
+        document.getElementById("verdictMainLabel").innerText = "CHƯA KẾT NỐI SERVER MÔ HÌNH";
+        document.getElementById("verdictSubDesc").innerText =
+            "Chạy scripts/live_demo_server.py rồi tải lại trang để dùng dữ liệu và mô hình thật.";
+    }
+}
+
+async function onDatasetChange() {
     const sel = document.getElementById("datasetSelect");
     currentDataset = sel.value;
+    await loadRealSamples(currentDataset);
     currentScenarioId = DATASETS[currentDataset].scenarios[0].id;
     renderScenarioButtons();
     loadScenario(currentScenarioId);
@@ -1451,6 +1479,107 @@ function renderComparisonTable(isAttack, attackType) {
         `;
         tbody.appendChild(tr);
     });
+}
+
+/*
+ * The original rule-based demo is retained above as historical UI fallback.
+ * This definition is the active path: it sends the complete real test row to
+ * the local Python inference server and renders the returned model prediction.
+ */
+let predictionRequestId = 0;
+async function executeDetection() {
+    const requestId = ++predictionRequestId;
+    const apiDataset = currentDataset === "nslkdd" ? "NSL-KDD" : "CICIDS2017";
+    const started = performance.now();
+    try {
+        const response = await fetch("http://127.0.0.1:8765/api/predict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                dataset: apiDataset,
+                method: currentFSMethod,
+                values: activeSampleValues
+            })
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const result = await response.json();
+        if (requestId !== predictionRequestId) return;
+
+        const prediction = result.prediction;
+        const isAttack = !["0", "normal", "benign"].includes(prediction.toLowerCase());
+        const latencyMs = (performance.now() - started).toFixed(2);
+        const verdictCard = document.getElementById("verdictCard");
+        verdictCard.className = `verdict-box ${isAttack ? "attack" : "normal"}`;
+        document.getElementById("verdictStatusTitle").innerText = isAttack
+            ? "Cảnh Báo Phát Hiện Xâm Nhập (Mô hình thật)"
+            : "Trạng Thái An Ninh (Mô hình thật)";
+        document.getElementById("verdictMainLabel").innerText =
+            `${isAttack ? "ATTACK" : "NORMAL"} — lớp mã hóa ${prediction}`;
+        document.getElementById("verdictSubDesc").innerText =
+            `Dự đoán từ Decision Tree huấn luyện trên ${apiDataset}/X_train.csv và tập đặc trưng ${currentFSMethod}.`;
+        document.getElementById("verdictConfidence").innerText =
+            `${(result.confidence * 100).toFixed(1)}%`;
+        document.getElementById("verdictLatency").innerText = `${latencyMs} ms`;
+        const risk = document.getElementById("verdictRisk");
+        risk.innerText = isAttack ? "Cao" : "An Toàn";
+        risk.style.color = isAttack ? "#b91c1c" : "#15803d";
+
+        document.getElementById("reasonSummaryBox").innerHTML =
+            `Mô hình dự đoán lớp <strong>${prediction}</strong> với xác suất cao nhất ` +
+            `trên hàng dữ liệu thật đã chọn từ tập kiểm định. Không sử dụng luật ngưỡng ` +
+            `hard-code trong trình duyệt.`;
+        document.getElementById("mitigationAdviceBox").innerText = isAttack
+            ? "Xác minh log và cô lập luồng bị cảnh báo theo quy trình ứng phó sự cố."
+            : "Tiếp tục giám sát định kỳ; kết quả hiện tại được mô hình phân loại là bình thường.";
+
+        const impactTbody = document.getElementById("featureImpactTableBody");
+        impactTbody.innerHTML = "";
+        result.featureContributions.forEach(feature => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td><strong>${feature.name}</strong></td>
+                <td class="num-col">${feature.val}</td>
+                <td><div class="impact-bar-wrapper"><div class="impact-bar-outer">
+                    <div class="impact-bar-inner ${isAttack ? "bar-attack" : "bar-normal"}"
+                         style="width: ${Math.min(100, feature.impact)}%;"></div>
+                </div></div></td>
+                <td class="num-col"><strong>${feature.impact}%</strong></td>`;
+            impactTbody.appendChild(tr);
+        });
+
+        const rules = document.getElementById("rulesTimeline");
+        rules.innerHTML = `
+            <div class="rule-step"><span class="rule-badge">Nguồn</span>
+                <span class="rule-text">Mẫu thật từ X_test.csv</span>
+                <span class="rule-status rule-pass">Đã nạp</span></div>
+            <div class="rule-step"><span class="rule-badge">Mô hình</span>
+                <span class="rule-text">DecisionTreeClassifier(random_state=42)</span>
+                <span class="rule-status rule-pass">Đã dự đoán</span></div>`;
+        renderApiComparisonTable(result, isAttack);
+    } catch (error) {
+        console.error("Inference server error:", error);
+        document.getElementById("verdictMainLabel").innerText = "CHƯA KẾT NỐI SERVER MÔ HÌNH";
+        document.getElementById("verdictSubDesc").innerText =
+            "Chạy: python scripts/live_demo_server.py rồi tải lại trang.";
+    }
+}
+
+function renderApiComparisonTable(result, isAttack) {
+    const tbody = document.getElementById("comparisonTableBody");
+    tbody.innerHTML = "";
+    const total = result.totalFeatures;
+    const currentCount = result.selectedFeatures.length;
+    const row = document.createElement("tr");
+    row.className = "highlight-row";
+    row.innerHTML = `
+        <td>Decision Tree — ${currentFSMethod} <span style="color: var(--primary);">(Đang chọn)</span></td>
+        <td class="num-col"><strong>${currentCount}</strong></td>
+        <td class="num-col"><span class="reduction-badge">-${(((total - currentCount) / total) * 100).toFixed(1)}%</span></td>
+        <td class="num-col">Đo thực tế</td>
+        <td class="num-col"><span class="speedup-badge">Dữ liệu thật</span></td>
+        <td>${isAttack ? "Phát hiện lớp tấn công" : "Bình thường"}</td>
+        <td><span style="color: #15803d; font-weight: 600;">Đã huấn luyện</span></td>`;
+    tbody.appendChild(row);
 }
 </script>
 
